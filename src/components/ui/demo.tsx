@@ -1,218 +1,58 @@
-"use client";
+import Link from "next/link";
+import { HeartHandshake } from "lucide-react";
 
-import React, { useEffect, useRef } from 'react';
-import { HeartHandshake } from 'lucide-react'; // Using lucide-react for icon
-
-const HalideLanding: React.FC = () => {
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const layersRef = useRef<HTMLDivElement[]>([]);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    // Mouse Parallax Logic
-    const handleMouseMove = (e: MouseEvent) => {
-      const x = (window.innerWidth / 2 - e.pageX) / 25;
-      const y = (window.innerHeight / 2 - e.pageY) / 25;
-
-      // Rotate the 3D Canvas
-      canvas.style.transform = `rotateX(${55 + y / 2}deg) rotateZ(${-25 + x / 2}deg)`;
-
-      // Apply depth shift to layers
-      layersRef.current.forEach((layer, index) => {
-        if (!layer) return;
-        const depth = (index + 1) * 15;
-        const moveX = x * (index + 1) * 0.2;
-        const moveY = y * (index + 1) * 0.2;
-        layer.style.transform = `translateZ(${depth}px) translate(${moveX}px, ${moveY}px)`;
-      });
-    };
-
-    // Entrance Animation
-    canvas.style.opacity = '0';
-    canvas.style.transform = 'rotateX(90deg) rotateZ(0deg) scale(0.8)';
-    
-    const timeout = setTimeout(() => {
-      canvas.style.transition = 'all 2.5s cubic-bezier(0.16, 1, 0.3, 1)';
-      canvas.style.opacity = '1';
-      canvas.style.transform = 'rotateX(55deg) rotateZ(-25deg) scale(1)';
-    }, 300);
-
-    window.addEventListener('mousemove', handleMouseMove);
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      clearTimeout(timeout);
-    };
-  }, []);
-
+export default function SimpleLanding() {
   return (
-    <>
-      <style>{`
-        :root {
-          --bg: #0a0a0a;
-          --silver: #e0e0e0;
-          --accent: #ff3c00;
-          --grain-opacity: 0.15;
-        }
+    <div className="min-h-screen bg-[#fcf9f2] text-[#111] flex flex-col font-sans transition-colors duration-500">
+      {/* Header / Navbar */}
+      <header className="container mx-auto px-6 py-6 border-b border-red-900/10 flex items-center justify-between">
+        <div className="flex items-center gap-2 font-extrabold text-xl tracking-tighter text-[#e63946]">
+          <HeartHandshake className="text-[#e63946]" strokeWidth={2.5} />
+          PLAY FOR PURPOSE
+        </div>
+        <nav className="flex gap-6 items-center text-sm font-bold tracking-wide">
+          <Link href="/login" className="text-gray-500 hover:text-[#e63946] transition-colors">Login</Link>
+          <Link href="/dashboard" className="text-gray-500 hover:text-[#e63946] transition-colors">Dashboard</Link>
+          <Link href="/admin" className="text-gray-500 hover:text-[#e63946] transition-colors border-l border-red-900/10 pl-6">Admin Panel</Link>
+        </nav>
+      </header>
 
-        .halide-body {
-          background-color: var(--bg);
-          color: var(--silver);
-          font-family: 'Inter', sans-serif;
-          overflow: hidden;
-          height: 100vh;
-          width: 100vw;
-          margin: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
+      {/* Hero Section */}
+      <main className="flex-1 flex flex-col items-center justify-center text-center px-4 relative overflow-hidden">
+        {/* Soft background glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#e63946]/5 rounded-full blur-3xl pointer-events-none"></div>
 
-        .halide-grain {
-          position: fixed;
-          top: 0; left: 0; width: 100%; height: 100%;
-          pointer-events: none;
-          z-index: 100;
-          opacity: var(--grain-opacity);
-        }
-
-        .viewport {
-          perspective: 2000px;
-          width: 100vw; height: 100vh;
-          display: flex; align-items: center; justify-content: center;
-          overflow: hidden;
-        }
-
-        .canvas-3d {
-          position: relative;
-          width: 800px; height: 500px;
-          transform-style: preserve-3d;
-          transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .layer {
-          position: absolute;
-          inset: 0;
-          border: 1px solid rgba(224, 224, 224, 0.1);
-          background-size: cover;
-          background-position: center;
-          transition: transform 0.5s ease;
-          border-radius: 12px;
-        }
-
-        /* Using clean, emotional impact stock images from Unsplash instead of default ones */
-        .layer-1 { background-image: url('https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&q=80&w=1200'); filter: grayscale(1) contrast(1.2) brightness(0.5); }
-        .layer-2 { background-image: url('https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&q=80&w=1200'); filter: grayscale(1) contrast(1.1) brightness(0.7); opacity: 0.6; mix-blend-mode: screen; }
-        .layer-3 { background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=1200'); filter: grayscale(1) contrast(1.3) brightness(0.8); opacity: 0.4; mix-blend-mode: overlay; }
-
-        .contours {
-          position: absolute;
-          width: 200%; height: 200%;
-          top: -50%; left: -50%;
-          background-image: repeating-radial-gradient(circle at 50% 50%, transparent 0, transparent 40px, rgba(255,255,255,0.05) 41px, transparent 42px);
-          transform: translateZ(120px);
-          pointer-events: none;
-        }
-
-        .interface-grid {
-          position: fixed;
-          inset: 0;
-          padding: 4rem;
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          grid-template-rows: auto 1fr auto;
-          z-index: 10;
-          pointer-events: none;
-        }
-
-        .hero-title {
-          grid-column: 1 / -1;
-          align-self: center;
-          font-size: clamp(3rem, 10vw, 8rem);
-          line-height: 0.85;
-          letter-spacing: -0.04em;
-          mix-blend-mode: difference;
-          font-weight: 800;
-        }
-
-        .cta-button {
-          pointer-events: auto;
-          background: var(--silver);
-          color: var(--bg);
-          padding: 1rem 2rem;
-          text-decoration: none;
-          font-weight: 700;
-          clip-path: polygon(0 0, 100% 0, 100% 70%, 85% 100%, 0 100%);
-          transition: 0.3s;
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-        }
-
-        .cta-button:hover { background: var(--accent); transform: translateY(-5px); color: white; }
-
-        .scroll-hint {
-          position: absolute;
-          bottom: 2rem; left: 50%;
-          width: 1px; height: 60px;
-          background: linear-gradient(to bottom, var(--silver), transparent);
-          animation: flow 2s infinite ease-in-out;
-        }
-
-        @keyframes flow {
-          0%, 100% { transform: scaleY(0); transform-origin: top; }
-          50% { transform: scaleY(1); transform-origin: top; }
-          51% { transform: scaleY(1); transform-origin: bottom; }
-        }
-      `}</style>
-
-      <div className="halide-body">
-        {/* SVG Filter for Grain */}
-        <svg style={{ position: 'absolute', width: 0, height: 0 }}>
-          <filter id="grain">
-            <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" />
-            <feColorMatrix type="saturate" values="0" />
-          </filter>
-        </svg>
-
-        <div className="halide-grain" style={{ filter: 'url(#grain)' }}></div>
-
-        <div className="interface-grid">
-          <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <HeartHandshake size={24} color="var(--accent)" />
-            GOLF_IMPACT
-          </div>
-          <div style={{ textAlign: 'right', fontFamily: 'monospace', color: 'var(--accent)', fontSize: '0.7rem' }}>
-            <div>GLOBAL IMPACT INITIATIVE</div>
-            <div>VERIFIED 2026</div>
-          </div>
-
-          <h1 className="hero-title">PLAY FOR<br />PURPOSE</h1>
-
-          <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-            <div style={{ fontFamily: 'monospace', fontSize: '0.75rem', maxWidth: '300px' }}>
-              <p>[ MONTHLY DRAWS ]</p>
-              <p>SUPPORT CHARITY. TRACK. WIN.</p>
-            </div>
-            <a href="/subscribe" className="cta-button">JOIN PLATFORM</a>
+        <div className="relative z-10 max-w-3xl space-y-6">
+          <p className="text-[#e63946] font-bold tracking-[0.2em] text-sm uppercase">Global Impact Initiative</p>
+          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tighter leading-tight text-[#111]">
+            Every score <span className="text-gray-400 line-through">matters</span><br/>
+            creates an <span className="text-[#e63946]">impact.</span>
+          </h1>
+          <p className="text-gray-600 text-lg md:text-xl max-w-2xl mx-auto mt-4 leading-relaxed font-medium">
+            The platform that transforms your performance into tangible charity. Enter your Stableford scores, participate in monthly draws, and route your winnings directly to the causes that define you.
+          </p>
+          
+          <div className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link 
+              href="/login" 
+              className="px-8 py-4 bg-[#111] text-white font-bold tracking-wider uppercase text-sm rounded-lg hover:bg-[#e63946] shadow-lg hover:shadow-[#e63946]/30 transition-all duration-300 w-full sm:w-auto"
+            >
+              Get Started
+            </Link>
+            <Link 
+              href="/dashboard" 
+              className="px-8 py-4 bg-transparent border-2 border-red-900/10 text-gray-700 font-bold tracking-wider uppercase text-sm rounded-lg hover:border-red-900/30 hover:bg-gray-50 transition-all duration-300 w-full sm:w-auto"
+            >
+              View Dashboard
+            </Link>
           </div>
         </div>
+      </main>
 
-        <div className="viewport">
-          <div className="canvas-3d" ref={canvasRef}>
-            <div className="layer layer-1" ref={(el) => { if (el) layersRef.current[0] = el; }}></div>
-            <div className="layer layer-2" ref={(el) => { if (el) layersRef.current[1] = el; }}></div>
-            <div className="layer layer-3" ref={(el) => { if (el) layersRef.current[2] = el; }}></div>
-            <div className="contours"></div>
-          </div>
-        </div>
-
-        <div className="scroll-hint"></div>
-      </div>
-    </>
+      {/* Footer */}
+      <footer className="border-t border-red-900/10 py-8 text-center text-gray-500 text-sm font-bold tracking-widest uppercase">
+        &copy; 2026 GOLF IMPACT &mdash; Verified Charity Protocol
+      </footer>
+    </div>
   );
-};
-
-export default HalideLanding;
+}
