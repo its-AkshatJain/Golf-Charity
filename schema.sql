@@ -15,10 +15,12 @@ CREATE TABLE IF NOT EXISTS public.charities (
 CREATE TABLE IF NOT EXISTS public.profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     role TEXT DEFAULT 'public' CHECK (role IN ('admin', 'subscriber', 'public')),
+    stripe_customer_id TEXT UNIQUE,
     selected_charity_id UUID REFERENCES public.charities(id) ON DELETE SET NULL,
     charity_contribution_percentage NUMERIC DEFAULT 10 CHECK (charity_contribution_percentage >= 10 AND charity_contribution_percentage <= 100),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
 );
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT UNIQUE;
 
 -- Subscriptions Table
 CREATE TABLE IF NOT EXISTS public.subscriptions (

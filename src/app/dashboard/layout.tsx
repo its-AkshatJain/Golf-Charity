@@ -29,6 +29,7 @@ export default async function DashboardLayout({
           </Link>
           <nav className="flex items-center gap-6 text-sm font-medium">
             <Link href="/dashboard" className="hover:text-white transition-colors">Overview</Link>
+            <Link href="/dashboard/subscription" className="hover:text-white transition-colors">Membership</Link>
             <Link href="/dashboard/scores" className="hover:text-white transition-colors">Enter Scores</Link>
             <Link href="/dashboard/charities" className="hover:text-white transition-colors">Charities</Link>
             {profile?.role === "admin" && (
