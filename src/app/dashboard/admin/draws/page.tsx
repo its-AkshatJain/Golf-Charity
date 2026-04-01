@@ -29,19 +29,19 @@ export default async function AdminDrawsPage() {
         </p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <div className="stat-card">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Active Subscribers</p>
-          <p className="text-3xl font-black text-[#111]">{activeSubs}</p>
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Subscribers</p>
+          <p className="text-3xl font-black text-[#0d0d0d]">{activeSubs}</p>
         </div>
         <div className="stat-card">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Estimated Pool</p>
-          <p className="text-3xl font-black text-[#111]">${estimatedPool.toFixed(0)}</p>
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Estimated Pool</p>
+          <p className="text-3xl font-black text-[#0d0d0d]">${estimatedPool.toFixed(0)}</p>
+          <p className="text-[11px] text-gray-400 font-medium">$15/sub × 60%</p>
         </div>
-        <div className="stat-card bg-[#111]">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Draws Run</p>
-          <p className="text-3xl font-black text-white">{drawsRes.data?.length ?? 0}</p>
+        <div className="rounded-[1.25rem] p-5 border border-[#e63946] bg-[#fff5f5] flex flex-col gap-2">
+          <p className="text-[10px] font-black text-[#e63946] uppercase tracking-widest">Draws Run</p>
+          <p className="text-3xl font-black text-[#e63946]">{drawsRes.data?.length ?? 0}</p>
         </div>
       </div>
 

@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
     customer: customerId,
     line_items: [{ price: priceId, quantity: 1 }],
     mode: "subscription",
-    success_url: `${origin}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+    success_url: `${origin}/api/stripe-success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/dashboard/subscription`,
     metadata: { supabase_user_id: user.id },
   });

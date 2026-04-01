@@ -11,7 +11,7 @@ export default async function VerificationPage() {
 
   const { data: winnings } = await supabase
     .from("winnings")
-    .select("*, draws(draw_date), profiles(id, charity_contribution_percentage)")
+    .select("*, draws(draw_date)")
     .order("created_at", { ascending: false });
 
   const pending = (winnings || []).filter((w) => w.status === "pending");
@@ -58,7 +58,7 @@ export default async function VerificationPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
-                  {["User ID", "Draw Date", "Match Type", "Prize Amount", "Status", "Actions"].map((h) => (
+                  {["User ID", "Draw Date", "Match Type", "Prize Amount", "Proof", "Status", "Actions"].map((h) => (
                     <th key={h} className="text-left px-4 py-3 text-xs font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
                       {h}
                     </th>
@@ -89,6 +89,16 @@ export default async function VerificationPage() {
                     </td>
                     <td className="px-4 py-3 font-black text-[#111]">
                       ${w.amount?.toFixed(2)}
+                    </td>
+                    <td className="px-4 py-3">
+                      {w.proof_url ? (
+                        <a href={w.proof_url} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-xs font-bold text-[#e63946] hover:text-[#111] transition-colors border border-red-200 bg-red-50 px-3 py-1.5 rounded-lg">
+                          <span>📷</span> View Proof
+                        </a>
+                      ) : (
+                        <span className="text-xs text-gray-300 font-medium">Not submitted</span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <span className={`text-xs font-bold capitalize ${
