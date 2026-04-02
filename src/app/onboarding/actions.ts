@@ -38,3 +38,13 @@ export async function saveOnboardingPreferences(
 
   return { success: true };
 }
+
+export async function skipOnboarding() {
+  const { cookies } = await import("next/headers");
+  const cookieStore = await cookies();
+  // Clear any old persistent cookie
+  cookieStore.delete("skip_onboarding");
+  // Set new session-only cookie
+  cookieStore.set("onboarding_skipped_session", "true"); 
+  return { success: true };
+}

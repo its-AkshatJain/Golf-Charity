@@ -1,12 +1,14 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import Sidebar from "./Sidebar";
+import { cookies } from "next/headers";
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const cookieStore = await cookies();
   const supabase = await createClient();
   const {
     data: { user },
@@ -27,10 +29,15 @@ export default async function DashboardLayout({
     .single();
 
   const isAdmin = profile?.role === "admin";
-  const hasActiveAccess =
-    profile?.selected_charity_id &&
-    subscription &&
-    (subscription.status === "active" || subscription.status === "trialing");
+  const hasSelectedCharity = !!profile?.selected_charity_id;
+  
+  // Use a session-only cookie to track skips for THIS specific browsing session
+  const hasSkippedThisSession = cookieStore.get("onboarding_skipped_session")?.value === "true";
+
+  // Redirect new/non-subscribed users to onboarding UNLESS they've already skipped this session
+  if (!isAdmin && !hasSelectedCharity && !hasSkippedThisSession) {
+    redirect("/onboarding");
+  }
 
   return (
     <div className="min-h-screen bg-[#f8f5ef] flex">

@@ -2,6 +2,7 @@ import { createClient } from "@/utils/supabase/server";
 import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { updateWinningStatus } from "../actions";
 import { LoadingButton } from "@/components/ui/LoadingButton";
+import { Camera, CheckCircle2, XCircle, CreditCard, ExternalLink } from "lucide-react";
 
 async function handleWinningStatus(formData: FormData) {
   "use server";
@@ -101,8 +102,8 @@ export default async function VerificationPage() {
                     <td>
                       {w.proof_url ? (
                         <a href={w.proof_url} target="_blank" rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-[10px] font-black text-[#e63946] hover:text-[#111] transition-colors border border-red-100 bg-red-50 px-3 py-1.5 rounded-lg uppercase tracking-wider">
-                          <span>📷</span> View Proof
+                          className="inline-flex items-center gap-1.5 text-[10px] font-black text-blue-600 hover:text-blue-800 transition-colors uppercase tracking-wider">
+                          <Camera className="w-3.5 h-3.5" /> View Proof <ExternalLink className="w-3 h-3" />
                         </a>
                       ) : (
                         <span className="text-[10px] text-gray-300 font-black uppercase tracking-widest">No Proof</span>
@@ -123,14 +124,14 @@ export default async function VerificationPage() {
                         <div className="flex gap-2">
                           <form action={handleWinningStatus}>
                             <input type="hidden" name="winning_id" value={w.id} />
-                            <LoadingButton name="action" value="verify" variant="success">
-                              Verify
+                            <LoadingButton name="action" value="verify" className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5">
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Verify
                             </LoadingButton>
                           </form>
                           <form action={handleWinningStatus}>
                             <input type="hidden" name="winning_id" value={w.id} />
-                            <LoadingButton name="action" value="reject" variant="danger">
-                              Reject
+                            <LoadingButton name="action" value="reject" className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5">
+                              <XCircle className="w-3.5 h-3.5" /> Reject
                             </LoadingButton>
                           </form>
                         </div>
@@ -138,8 +139,8 @@ export default async function VerificationPage() {
                       {w.status === "verified" && (
                         <form action={handleWinningStatus}>
                           <input type="hidden" name="winning_id" value={w.id} />
-                          <LoadingButton name="action" value="pay" variant="dark">
-                            Mark Paid
+                          <LoadingButton name="action" value="pay" className="bg-[#111] hover:bg-black text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5">
+                            <CreditCard className="w-3.5 h-3.5" /> Mark Paid
                           </LoadingButton>
                         </form>
                       )}

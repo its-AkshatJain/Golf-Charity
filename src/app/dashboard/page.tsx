@@ -1,5 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 
 export default async function DashboardOverview() {
   const supabase = await createClient();
@@ -9,7 +11,7 @@ export default async function DashboardOverview() {
   const [profileRes, scoresRes, winningsRes, subRes, drawsRes] = await Promise.all([
     supabase
       .from("profiles")
-      .select("role, charity_contribution_percentage, charities(name)")
+      .select("role, selected_charity_id, charity_contribution_percentage, charities(name)")
       .eq("id", user.id)
       .single(),
     supabase
@@ -40,6 +42,15 @@ export default async function DashboardOverview() {
   const subscription = subRes.data;
   const totalDraws = drawsRes.count ?? 0;
   const isAdmin = profile?.role === "admin";
+
+  // Second-level redirect safety check
+  const cookieStore = await cookies();
+  const hasSkippedThisSession = cookieStore.get("onboarding_skipped_session")?.value === "true";
+  const hasSelectedCharity = !!profile?.selected_charity_id;
+
+  if (!isAdmin && !hasSelectedCharity && !hasSkippedThisSession) {
+    redirect("/onboarding");
+  }
 
   // Only count winnings that aren't rejected
   const activeWinnings = winnings.filter((w) => w.status !== "rejected");

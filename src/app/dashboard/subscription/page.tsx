@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import Link from "next/link";
+import { CheckCircle2, Zap, ArrowRight, ShieldCheck } from "lucide-react";
 
 export default async function SubscriptionPage() {
   const supabase = await createClient();
@@ -75,10 +76,11 @@ export default async function SubscriptionPage() {
                   <span className="text-sm text-gray-400 font-semibold">/month</span>
                 </div>
               </div>
-              <ul className="space-y-2 flex-1">
+              <ul className="space-y-3 flex-1">
                 {["Monthly draw entry", "Track 5 Stableford rounds", "Charity contribution routing", "Access to full dashboard"].map((f) => (
                   <li key={f} className="flex items-center gap-2.5 text-sm text-gray-600 font-medium">
-                    <span className="text-[#e63946] font-black text-sm">✓</span>{f}
+                    <CheckCircle2 className="w-4 h-4 text-[#e63946] shrink-0" />
+                    <span>{f}</span>
                   </li>
                 ))}
               </ul>
@@ -91,22 +93,26 @@ export default async function SubscriptionPage() {
             </div>
 
             {/* Yearly */}
-            <div className="relative brand-card p-7 flex flex-col gap-5 bg-[#111]">
+            <div className="relative brand-card p-7 flex flex-col gap-5 !bg-[#111]">
               <div className="absolute top-4 right-4 bg-[#e63946] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">
                 Best Value
               </div>
               <div>
-                <h3 className="text-xl font-black text-white uppercase tracking-tight">Annual</h3>
+                <h3 className="text-xl font-black text-white uppercase tracking-tight flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                  Annual
+                </h3>
                 <div className="flex items-baseline gap-1 mt-2">
-                  <span className="text-4xl font-black text-white tracking-tighter">$150</span>
-                  <span className="text-sm text-gray-400 font-semibold">/year</span>
+                  <span className="text-4xl font-black !text-white tracking-tighter">$150</span>
+                  <span className="text-sm text-gray-400 font-semibold tracking-wide">/year</span>
                 </div>
                 <p className="text-xs text-green-400 font-bold mt-1">Save $30 — 2 months free</p>
               </div>
-              <ul className="space-y-2 flex-1">
+              <ul className="space-y-3 flex-1">
                 {["Everything in Monthly", "2 months free ($30 saving)", "Priority draw eligibility", "Annual impact report"].map((f) => (
-                  <li key={f} className="flex items-center gap-2.5 text-sm text-gray-300 font-medium">
-                    <span className="text-[#e63946] font-black text-sm">✓</span>{f}
+                  <li key={f} className="flex items-center gap-2.5 text-sm !text-gray-300 font-medium">
+                    <CheckCircle2 className="w-4 h-4 text-[#e63946] shrink-0" />
+                    <span>{f}</span>
                   </li>
                 ))}
               </ul>

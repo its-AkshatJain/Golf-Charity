@@ -2,6 +2,7 @@
 
 import { useActionState, useState, useTransition } from "react";
 import { runDraw, simulateWin } from "../actions";
+import { Dices, Loader2 } from "lucide-react";
 
 export default function DrawClient() {
   const [mode, setMode] = useState<"random" | "algorithmic">("random");
@@ -89,9 +90,14 @@ export default function DrawClient() {
         <button
           type="submit"
           disabled={isPending || isSimulating}
-          className="w-full bg-[#111] text-white py-4 rounded-xl font-black text-sm uppercase tracking-widest hover:bg-[#e63946] transition-all disabled:opacity-50"
+          className="w-full bg-[#111] text-white py-4 rounded-xl font-black text-sm uppercase tracking-widest hover:bg-[#e63946] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          {isPending ? "Running Draw..." : "🎲 Execute Monthly Draw"}
+          {isPending ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Dices className="w-4 h-4" />
+          )}
+          {isPending ? "Running Draw..." : "Execute Monthly Draw"}
         </button>
 
         {/* 

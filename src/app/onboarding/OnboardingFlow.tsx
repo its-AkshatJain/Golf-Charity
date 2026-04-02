@@ -19,6 +19,14 @@ export default function OnboardingFlow({ charities }: { charities: Charity[] }) 
   const [percentage, setPercentage] = useState(10);
   const [plan, setPlan] = useState<"monthly" | "yearly">("monthly");
   const [loading, setLoading] = useState(false);
+  const [skipping, setSkiping] = useState(false);
+
+  const handleSkip = async () => {
+    setSkiping(true);
+    const { skipOnboarding } = await import("./actions");
+    await skipOnboarding();
+    window.location.href = "/dashboard";
+  };
 
   const handleNext = () => {
     if (step < 3) setStep(step + 1);
@@ -42,7 +50,6 @@ export default function OnboardingFlow({ charities }: { charities: Charity[] }) 
       }
 
       // 2. Fetch Stripe Session
-      // Determine the Price ID based on the environment and plan selected
       const priceId = plan === "monthly" 
         ? process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID 
         : process.env.NEXT_PUBLIC_STRIPE_YEARLY_PRICE_ID;
@@ -73,8 +80,22 @@ export default function OnboardingFlow({ charities }: { charities: Charity[] }) 
 
   return (
     <div className="w-full">
-      {/* Progress Indicator */}
       <div className="flex items-center justify-between mb-12">
+        <div className="flex flex-col">
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Getting Started</p>
+          <h1 className="text-2xl font-black text-[#111] tracking-tight">Onboarding</h1>
+        </div>
+        <button
+          onClick={handleSkip}
+          disabled={skipping}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gray-100 text-gray-500 hover:bg-[#e63946] hover:text-white transition-all text-xs font-bold uppercase tracking-widest disabled:opacity-50"
+        >
+          {skipping ? "Redirecting..." : "Skip →"}
+        </button>
+      </div>
+
+      {/* Progress Indicator */}
+      <div className="flex items-center justify-between mb-12 px-2">
         {[
           { id: 1, label: "Impact", icon: Heart },
           { id: 2, label: "Allocation", icon: HandCoins },
@@ -90,7 +111,7 @@ export default function OnboardingFlow({ charities }: { charities: Charity[] }) 
             >
               <s.icon className="w-4 h-4" />
             </div>
-            <p className={`mt-3 text-xs font-bold uppercase tracking-widest transition-colors duration-500 ${step >= s.id ? "text-[#111]" : "text-gray-400"}`}>
+            <p className={`mt-3 text-[10px] font-bold uppercase tracking-widest transition-colors duration-500 ${step >= s.id ? "text-[#111]" : "text-gray-400"}`}>
               {s.label}
             </p>
             {/* Connecting lines */}
@@ -194,60 +215,64 @@ export default function OnboardingFlow({ charities }: { charities: Charity[] }) 
             </div>
 
             <div className="max-w-2xl mx-auto flex flex-col md:flex-row gap-6">
-               <div
-                  onClick={() => setPlan("monthly")}
-                  className={`flex-1 cursor-pointer rounded-3xl border-2 p-6 transition-all duration-300 relative flex flex-col justify-between ${
-                    plan === "monthly"
-                      ? "border-[#111] bg-[#111] text-white shadow-xl shadow-[#111]/20 scale-105 z-10"
-                      : "border-gray-200 bg-white hover:border-gray-300 scale-100"
-                  }`}
-                >
-                  {plan === "monthly" && (
-                    <div className="absolute top-4 right-4 text-white">
-                      <CheckCircle2 className="w-6 h-6 opacity-50" />
-                    </div>
-                  )}
-                  <div>
-                    <h3 className={`text-xl font-bold ${plan === "monthly" ? "text-white" : "text-[#111]"}`}>Monthly</h3>
-                    <p className={`text-sm mt-1 mb-8 ${plan === "monthly" ? "text-gray-400" : "text-gray-500"}`}>Flexible access.</p>
+              {/* Monthly Card */}
+              <div
+                onClick={() => setPlan("monthly")}
+                className={`flex-1 cursor-pointer rounded-3xl border-2 p-6 transition-all duration-300 relative flex flex-col justify-between ${
+                  plan === "monthly"
+                    ? "border-[#111] bg-[#111] text-white shadow-xl"
+                    : "border-gray-200 bg-white hover:border-gray-300"
+                }`}
+              >
+                {plan === "monthly" && (
+                  <div className="absolute top-4 right-4 text-white">
+                    <CheckCircle2 className="w-6 h-6 opacity-80" />
                   </div>
-                  <div>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-4xl font-extrabold tracking-tighter">$15</span>
-                      <span className={`text-sm font-bold uppercase tracking-widest ${plan === "monthly" ? "text-gray-500" : "text-gray-400"}`}>/mo</span>
-                    </div>
+                )}
+                <div>
+                  <h3 className={`text-xl font-bold ${plan === "monthly" ? "text-white" : "text-[#111]"}`}>Monthly</h3>
+                  <p className={`text-sm mt-1 mb-8 ${plan === "monthly" ? "text-gray-400" : "text-gray-500"}`}>Flexible access.</p>
+                </div>
+                <div>
+                  <div className="flex items-baseline gap-1">
+                    <span className={`text-4xl font-extrabold tracking-tighter ${plan === "monthly" ? "text-white" : "text-[#111]"}`}>$15</span>
+                    <span className={`text-sm font-bold uppercase tracking-widest ${plan === "monthly" ? "text-gray-500" : "text-gray-400"}`}>/mo</span>
                   </div>
                 </div>
+              </div>
 
-                <div
-                  onClick={() => setPlan("yearly")}
-                  className={`flex-1 cursor-pointer rounded-3xl border-2 p-6 transition-all duration-300 relative flex flex-col justify-between ${
-                    plan === "yearly"
-                      ? "border-[#e63946] bg-[#e63946] text-white shadow-xl shadow-[#e63946]/30 scale-105 z-10"
-                      : "border-gray-200 bg-white hover:border-gray-300 scale-100"
-                  }`}
-                >
-                  <div className="absolute -top-3 inset-x-0 w-full flex justify-center">
-                    <span className="bg-[#111] text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-md">
-                      Save 2 Months
-                    </span>
+              {/* Annual Card - Fixed to always be Dark as requested */}
+              <div
+                onClick={() => setPlan("yearly")}
+                className={`flex-1 cursor-pointer rounded-3xl border-2 p-6 transition-all duration-300 relative flex flex-col justify-between bg-[#111] text-white ${
+                  plan === "yearly"
+                    ? "border-[#e63946] shadow-xl shadow-red-900/20 scale-105 z-10"
+                    : "border-gray-800 scale-100 opacity-90"
+                }`}
+              >
+                <div className="absolute -top-3 inset-x-0 w-full flex justify-center">
+                  <span className="bg-[#e63946] text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-md">
+                    Save 2 Months
+                  </span>
+                </div>
+                {plan === "yearly" && (
+                  <div className="absolute top-4 right-4 text-[#e63946]">
+                    <CheckCircle2 className="w-6 h-6" />
                   </div>
-                  {plan === "yearly" && (
-                    <div className="absolute top-4 right-4 text-white">
-                      <CheckCircle2 className="w-6 h-6 opacity-80" />
-                    </div>
-                  )}
-                  <div>
-                    <h3 className={`text-xl font-bold ${plan === "yearly" ? "text-white" : "text-[#111]"}`}>Annual</h3>
-                    <p className={`text-sm mt-1 mb-8 ${plan === "yearly" ? "text-red-200" : "text-gray-500"}`}>Best value.</p>
-                  </div>
-                  <div>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-4xl font-extrabold tracking-tighter">$150</span>
-                      <span className={`text-sm font-bold uppercase tracking-widest ${plan === "yearly" ? "text-red-200" : "text-gray-400"}`}>/yr</span>
-                    </div>
+                )}
+                <div>
+                  <h3 className="text-xl font-bold text-white">Annual</h3>
+                  <p className={`text-sm mt-1 mb-8 ${plan === "yearly" ? "text-red-400 font-bold" : "text-gray-400 font-medium"}`}>
+                    Best value.
+                  </p>
+                </div>
+                <div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-extrabold tracking-tighter !text-white">$150</span>
+                    <span className="text-sm font-bold uppercase tracking-widest text-gray-500">/yr</span>
                   </div>
                 </div>
+              </div>
             </div>
           </div>
         )}
@@ -291,14 +316,7 @@ export default function OnboardingFlow({ charities }: { charities: Charity[] }) 
         )}
       </div>
 
-      <div className="mt-8 text-center">
-        <Link
-          href="/dashboard"
-          className="text-[10px] font-black tracking-widest uppercase text-gray-400 hover:text-[#e63946] transition-colors"
-        >
-          Skip for now — explore dashboard →
-        </Link>
-      </div>
+
     </div>
   );
 }

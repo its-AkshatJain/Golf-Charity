@@ -2,6 +2,7 @@
 
 import { useActionState, useState, useTransition, useEffect } from "react";
 import { addScore, deleteScore, updateScore } from "./actions";
+import { Pencil, Trash2, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 
 type Score = { id: string; score: number; date: string };
 type Props = { initialScores: Score[] };
@@ -129,16 +130,18 @@ export default function ScoresClient({ initialScores }: Props) {
                       <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => setEditing(s)}
-                          className="text-[10px] font-black text-blue-500 hover:text-[#111] uppercase tracking-widest border border-blue-200 bg-blue-50 px-2 py-1 rounded-lg transition-colors"
+                          className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
+                          title="Edit score"
                         >
-                          Edit
+                          <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDelete(s.id)}
                           disabled={isPending}
-                          className="text-[10px] font-black text-[#e63946] hover:text-white hover:bg-[#e63946] uppercase tracking-widest border border-red-200 bg-red-50 px-2 py-1 rounded-lg transition-all disabled:opacity-50"
+                          className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                          title="Delete score"
                         >
-                          Delete
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                       <div className="text-right">
@@ -158,9 +161,10 @@ export default function ScoresClient({ initialScores }: Props) {
         )}
 
         {scores.length >= 5 && (
-          <p className="text-xs text-orange-500 font-semibold text-center mt-4 p-3 bg-orange-50 rounded-xl">
-            ⚠ You have 5 scores. Adding a new one will automatically remove the oldest.
-          </p>
+          <div className="flex items-center gap-2 text-xs text-orange-600 font-bold justify-center mt-4 p-3 bg-orange-50 rounded-xl border border-orange-100">
+            <AlertCircle className="w-3.5 h-3.5" />
+            <span>You have 5 scores. Adding a new one will automatically remove the oldest.</span>
+          </div>
         )}
       </div>
 
@@ -176,8 +180,9 @@ export default function ScoresClient({ initialScores }: Props) {
             </div>
           )}
           {addState?.success && (
-            <div className="p-3 bg-green-50 border border-green-200 text-green-600 text-sm rounded-xl font-medium">
-              ✓ Score added successfully.
+            <div className="p-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-xl font-bold flex items-center gap-2 animate-in fade-in zoom-in-95 duration-300">
+              <CheckCircle2 className="w-4 h-4" />
+              Score added successfully.
             </div>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -212,8 +217,9 @@ export default function ScoresClient({ initialScores }: Props) {
           <button
             type="submit"
             disabled={isAdding}
-            className="w-full bg-[#111] text-white py-4 rounded-xl font-black text-sm uppercase tracking-widest hover:bg-[#e63946] transition-all duration-300 hover:shadow-lg hover:shadow-red-900/20 disabled:opacity-50"
+            className="w-full bg-[#111] text-white py-4 rounded-xl font-black text-sm uppercase tracking-widest hover:bg-[#e63946] transition-all duration-300 hover:shadow-lg hover:shadow-red-900/20 disabled:opacity-50 flex items-center justify-center gap-2"
           >
+            {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
             {isAdding ? "Saving…" : "Submit Score"}
           </button>
         </form>

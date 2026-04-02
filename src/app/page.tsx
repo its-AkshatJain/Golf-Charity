@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/server";
+import { ArrowRight, Sparkles, ShieldCheck, CreditCard, Heart, Trophy, Zap, CheckCircle2 } from "lucide-react";
 
 export default async function HomePage() {
   // Fetch charities and check auth status for adaptive nav
@@ -89,17 +90,17 @@ export default async function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href={user ? "/dashboard" : "/login"}
-              className="bg-[#e63946] text-white px-10 py-5 rounded-2xl text-base font-black tracking-wide hover:bg-white hover:text-[#e63946] transition-all duration-300 hover:shadow-2xl hover:shadow-red-900/30 inline-flex items-center gap-2"
+              href="/onboarding"
+              className="bg-[#e63946] text-white px-10 py-5 rounded-2xl text-base font-black tracking-wide hover:bg-white hover:text-[#e63946] transition-all duration-300 hover:shadow-2xl hover:shadow-red-900/30 inline-flex items-center gap-2 group"
             >
-              Subscribe & Play for Charity
-              <span className="text-xl">→</span>
+              Start Playing
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
-              href="#how-it-works"
-              className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-10 py-5 rounded-2xl text-base font-bold hover:bg-white/20 transition-all duration-300"
+              href="/dashboard/admin"
+              className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-10 py-5 rounded-2xl text-base font-bold hover:bg-white/20 transition-all duration-300 inline-flex items-center gap-2"
             >
-              See how it works
+              Admin Dashboard
             </Link>
           </div>
 
@@ -142,34 +143,39 @@ export default async function HomePage() {
               {
                 step: "01",
                 title: "Subscribe",
+                icon: <CreditCard className="w-5 h-5" />,
                 body: "Choose a monthly ($15) or annual ($150) plan. A portion of every subscription builds the charity pool and funds the monthly prize draw.",
                 color: "bg-[#111]",
                 textColor: "text-white",
               },
               {
                 step: "02",
-                title: "Play & Record",
-                body: "Submit your last 5 Stableford scores (range 1–45). Our rolling system keeps only the latest 5. Your scores determine draw eligibility.",
+                title: "Play Golf",
+                icon: <Trophy className="w-5 h-5" />,
+                body: "Play your normal rounds at your local club. Record your Stableford scores through our simple dashboard. Every point counts.",
                 color: "bg-[#e63946]",
                 textColor: "text-white",
               },
               {
                 step: "03",
                 title: "Win & Give",
-                body: "Monthly draws match 5, 4, or 3 numbers for prize tiers. Your winnings split between you and your chosen charity at your configured ratio.",
+                icon: <Heart className="w-5 h-5" />,
+                body: "Our algorithmic draw picks winners from among active players. If you win, you keep the majority, and your charity gets a massive boost.",
                 color: "bg-white border border-[#111]/10",
                 textColor: "text-[#111]",
               },
             ].map((s) => (
-              <div
-                key={s.step}
-                className={`${s.color} ${s.textColor} rounded-3xl p-8 flex flex-col gap-4 shadow-xl`}
-              >
-                <span className={`text-6xl font-black tracking-tighter opacity-20`}>
+              <div key={s.step} className={`${s.color} ${s.textColor} p-10 rounded-[2.5rem] relative overflow-hidden transition-all duration-500 hover:-translate-y-2 shadow-xl`}>
+                <div className="absolute top-8 right-8 opacity-20 font-black text-6xl tracking-tighter">
                   {s.step}
-                </span>
-                <h3 className="text-2xl font-black tracking-tight">{s.title}</h3>
-                <p className="leading-relaxed opacity-95 text-sm font-medium">{s.body}</p>
+                </div>
+                <div className="mb-6 w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center">
+                  {s.icon}
+                </div>
+                <h3 className="text-2xl font-black mb-4 uppercase tracking-tight">{s.title}</h3>
+                <p className="text-sm font-medium leading-relaxed opacity-90">
+                  {s.body}
+                </p>
               </div>
             ))}
           </div>
@@ -192,41 +198,16 @@ export default async function HomePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              {
-                match: "5-Number Match",
-                share: "40%",
-                tag: "JACKPOT + ROLLOVER",
-                desc: "If no winner, rolls over to next month's pool.",
-                accent: "#e63946",
-              },
-              {
-                match: "4-Number Match",
-                share: "35%",
-                tag: "MAJOR PRIZE",
-                desc: "Split equally among all 4-match winners.",
-                accent: "#e63946",
-              },
-              {
-                match: "3-Number Match",
-                share: "25%",
-                tag: "ENTRY PRIZE",
-                desc: "Split equally among all 3-match winners.",
-                accent: "#e63946",
-              },
-            ].map((tier) => (
-              <div
-                key={tier.match}
-                className="border border-white/10 rounded-3xl p-8 bg-white/5 backdrop-blur-sm hover:border-[#e63946]/50 transition-colors duration-300"
-              >
-                <p
-                  className="text-xs font-bold tracking-widest uppercase mb-4"
-                  style={{ color: tier.accent }}
-                >
-                  {tier.tag}
-                </p>
-                <p className="text-5xl font-black tracking-tighter mb-2">{tier.share}</p>
-                <p className="text-lg font-bold text-white mb-4">{tier.match}</p>
-                <p className="text-sm text-gray-300 leading-relaxed font-medium">{tier.desc}</p>
+              { id: "1", title: "Monthly Draws", body: "Transparent prize distributions handled every 30 days.", icon: <Sparkles className="w-10 h-10 text-[#e63946]" /> },
+              { id: "2", title: "Stripe Secured", body: "Financial operations managed by the world's most trusted processor.", icon: <ShieldCheck className="w-10 h-10 text-blue-500" /> },
+              { id: "3", title: "Charity Focus", body: "Direct routing of percentage-based winnings to verified partners.", icon: <Heart className="w-10 h-10 text-red-500" /> },
+            ].map((item) => (
+              <div key={item.id} className="bg-white/5 backdrop-blur-md p-10 rounded-[2rem] border border-white/10 hover:border-white/20 transition-all text-center group">
+                <div className="mb-6 flex justify-center group-hover:scale-110 transition-transform duration-300">
+                  {item.icon}
+                </div>
+                <h3 className="text-xl font-bold mb-3 !text-white">{item.title}</h3>
+                <p className="text-gray-400 text-sm font-medium leading-relaxed">{item.body}</p>
               </div>
             ))}
           </div>
@@ -283,11 +264,11 @@ export default async function HomePage() {
             Join subscribers using their golf game to fund real-world change. Every round counts.
           </p>
           <Link
-            href={user ? "/dashboard" : "/login"}
-            className="inline-flex items-center gap-3 bg-white text-[#e63946] px-10 py-5 rounded-2xl text-base font-black hover:bg-[#111] hover:text-white transition-all duration-300 hover:shadow-2xl hover:shadow-black/30"
+            href="/onboarding"
+            className="inline-flex items-center gap-3 bg-white text-[#e63946] px-10 py-5 rounded-2xl text-base font-black hover:bg-[#111] hover:text-white transition-all duration-300 hover:shadow-2xl hover:shadow-black/30 group"
           >
-            {user ? "Go to Dashboard" : "Create Your Account — Free to Join"}
-            <span className="text-xl">→</span>
+            Get Started Now
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
       </section>
