@@ -53,13 +53,15 @@ body {
 /* ─── TYPOGRAPHY ROLES ───────────────────────────────────────── */
 
 /* Display / headings → DM Sans (bold, geometric) */
-h1, h2, h3, h4, h5, h6,
-.heading, .page-title {
-  font-family: var(--font-heading);
-  font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  color: var(--brand-black);
+@layer base {
+  h1, h2, h3, h4, h5, h6,
+  .heading, .page-title {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--brand-black);
+  }
 }
 
 .page-title {
@@ -73,12 +75,14 @@ h1, h2, h3, h4, h5, h6,
 }
 
 /* Body / readable copy → Montserrat (humanist, warm) */
-p, .body-text, .prose, label,
-.page-subtitle, td, li {
-  font-family: var(--font-body);
-  font-size: 0.875rem;
-  line-height: 1.65;
-  color: #555550;
+@layer base {
+  p, .body-text, .prose, label,
+  .page-subtitle, td, li {
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    line-height: 1.65;
+    color: #555550;
+  }
 }
 
 .page-subtitle {

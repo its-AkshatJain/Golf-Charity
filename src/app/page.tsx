@@ -23,13 +23,13 @@ export default async function HomePage() {
           <div className="flex items-center gap-4">
             <Link
               href="#how-it-works"
-              className="text-sm font-semibold text-gray-500 hover:text-[#111] transition-colors hidden md:block"
+              className="text-sm font-bold text-gray-600 hover:text-[#111] transition-colors hidden md:block"
             >
               How it works
             </Link>
             <Link
               href="#charities"
-              className="text-sm font-semibold text-gray-500 hover:text-[#111] transition-colors hidden md:block"
+              className="text-sm font-bold text-gray-600 hover:text-[#111] transition-colors hidden md:block"
             >
               Charities
             </Link>
@@ -65,22 +65,24 @@ export default async function HomePage() {
             quality={85}
           />
           {/* Layered gradient overlay — dark at bottom, lighter at top */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/80" />
+          <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/40 to-black/90 z-[1]" />
           {/* Subtle red tint to tie brand into emotion */}
-          <div className="absolute inset-0 bg-[#e63946]/10" />
+          <div className="absolute inset-0 bg-[#e63946]/15 z-[2]" />
+          {/* Bottom vignette for smoother transition */}
+          <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-[#fcf9f2] to-transparent z-[3]" />
         </div>
 
         {/* Hero content */}
         <div className="relative z-10 max-w-4xl mx-auto px-6 text-center pt-16">
-          <p className="text-[#e63946] font-mono text-xs tracking-[0.3em] uppercase mb-6 font-semibold">
+          <p className="font-mono text-xs tracking-[0.4em] uppercase mb-6 font-black drop-shadow-md !text-white">
             Golf · Charity · Impact
           </p>
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tighter leading-none mb-8">
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-none mb-8 drop-shadow-[0_8px_32px_rgba(0,0,0,0.5)] !text-white">
             Every round
             <br />
-            <span className="text-[#e63946]">funds a future.</span>
+            funds a future.
           </h1>
-          <p className="text-lg md:text-xl text-white/75 max-w-2xl mx-auto leading-relaxed mb-12">
+          <p className="text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed mb-12 drop-shadow-sm !text-white">
             You play Stableford. Your subscription enters a monthly draw. Your
             winnings — and your charity's share — change lives. It's that
             simple.
@@ -101,13 +103,20 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          {/* Trust badges */}
-          <div className="flex items-center justify-center gap-8 mt-16 text-white/50 text-xs font-semibold tracking-widest uppercase">
-            <span>Stripe-secured payments</span>
-            <span className="w-1 h-1 rounded-full bg-white/30" />
-            <span>Verified charities</span>
-            <span className="w-1 h-1 rounded-full bg-white/30" />
-            <span>Monthly draws</span>
+          {/* Trust badges — sitting on top of the light vignette footer of the hero */}
+          <div className="flex flex-wrap items-center justify-center gap-6 mt-16 text-[#111] text-[10px] md:text-xs font-black tracking-[0.2em] uppercase">
+            <span className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#e63946]" />
+              Stripe-secured payments
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#e63946]" />
+              Verified charities
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#e63946]" />
+              Monthly draws
+            </span>
           </div>
         </div>
 
@@ -160,7 +169,7 @@ export default async function HomePage() {
                   {s.step}
                 </span>
                 <h3 className="text-2xl font-black tracking-tight">{s.title}</h3>
-                <p className="leading-relaxed opacity-80 text-sm">{s.body}</p>
+                <p className="leading-relaxed opacity-95 text-sm font-medium">{s.body}</p>
               </div>
             ))}
           </div>
@@ -177,7 +186,7 @@ export default async function HomePage() {
             <h2 className="text-4xl md:text-5xl font-black tracking-tighter">
               How prizes are distributed
             </h2>
-            <p className="text-gray-400 mt-4 max-w-xl mx-auto">
+            <p className="text-gray-500 mt-4 max-w-xl mx-auto font-medium">
               The prize pool auto-scales with active subscribers. More players = bigger jackpots for everyone.
             </p>
           </div>
@@ -216,8 +225,8 @@ export default async function HomePage() {
                   {tier.tag}
                 </p>
                 <p className="text-5xl font-black tracking-tighter mb-2">{tier.share}</p>
-                <p className="text-lg font-bold text-white/80 mb-4">{tier.match}</p>
-                <p className="text-sm text-gray-400 leading-relaxed">{tier.desc}</p>
+                <p className="text-lg font-bold text-white mb-4">{tier.match}</p>
+                <p className="text-sm text-gray-300 leading-relaxed font-medium">{tier.desc}</p>
               </div>
             ))}
           </div>
@@ -232,7 +241,7 @@ export default async function HomePage() {
             <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-[#111]">
               Your game. Their future.
             </h2>
-            <p className="text-gray-500 mt-4 max-w-xl mx-auto">
+            <p className="text-gray-600 mt-4 max-w-xl mx-auto font-medium">
               Choose from our verified charity directory at signup. Switch anytime from your dashboard.
             </p>
           </div>
@@ -250,7 +259,7 @@ export default async function HomePage() {
                     </span>
                   )}
                   <h3 className="text-lg font-black text-[#111] tracking-tight">{c.name}</h3>
-                  <p className="text-sm text-gray-500 mt-2 leading-relaxed line-clamp-3">
+                  <p className="text-sm text-gray-600 mt-2 leading-relaxed line-clamp-3 font-medium">
                     {c.description}
                   </p>
                 </div>
@@ -270,7 +279,7 @@ export default async function HomePage() {
           <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-6">
             Ready to play with purpose?
           </h2>
-          <p className="text-white/75 text-lg mb-10 max-w-xl mx-auto">
+          <p className="text-white text-lg mb-10 max-w-xl mx-auto font-medium shadow-black/10">
             Join subscribers using their golf game to fund real-world change. Every round counts.
           </p>
           <Link
