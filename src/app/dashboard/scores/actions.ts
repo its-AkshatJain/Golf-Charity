@@ -10,6 +10,16 @@ export async function addScore(prevState: any, formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (profile?.role === "public") {
+    return { error: "Only subscribers can record scores. Please upgrade your plan." };
+  }
+
   const score = parseInt(formData.get("score") as string, 10);
   const dateStr = formData.get("date") as string;
 

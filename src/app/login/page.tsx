@@ -10,6 +10,7 @@ function LoginContent() {
   const messageParam = searchParams.get("message");
   
   const [isLogin, setIsLogin] = useState(true);
+  const [state, formAction, isPending] = useActionState(isLogin ? login : signup, null as any);
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4 bg-[#fcf9f2] text-black transition-colors duration-500">
@@ -34,8 +35,14 @@ function LoginContent() {
             {messageParam}
           </div>
         )}
+
+        {state?.error && (
+          <div className="p-3 border border-red-500/30 bg-red-50 text-red-700 text-sm rounded-lg font-medium">
+            {state.error}
+          </div>
+        )}
         
-        <form className="space-y-5 flex flex-col">
+        <form action={formAction} className="space-y-5 flex flex-col">
           <div>
             <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5" htmlFor="email">Email Address</label>
             <input
@@ -60,15 +67,18 @@ function LoginContent() {
 
           <div className="flex flex-col gap-3 mt-8">
             <button
-              formAction={isLogin ? login : signup}
-              className="w-full rounded-lg bg-[#111] text-white px-4 py-3.5 text-sm font-bold tracking-wide shadow-md hover:bg-[#e63946] hover:shadow-lg hover:shadow-[#e63946]/30 transition-all duration-300"
+              type="submit"
+              disabled={isPending}
+              className="w-full rounded-lg bg-[#111] text-white px-4 py-3.5 text-sm font-bold tracking-wide shadow-md hover:bg-[#e63946] hover:shadow-lg hover:shadow-[#e63946]/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {isLogin ? "Log in" : "Create Account"}
+              {isPending && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+              {isPending ? "Processing..." : (isLogin ? "Log in" : "Create Account")}
             </button>
             <button
               type="button"
+              disabled={isPending}
               onClick={() => setIsLogin(!isLogin)}
-              className="w-full rounded-lg border-2 border-transparent bg-gray-50 text-gray-500 px-4 py-3.5 text-sm font-bold tracking-wide hover:bg-gray-100 transition-colors"
+              className="w-full rounded-lg border-2 border-transparent bg-gray-50 text-gray-500 px-4 py-3.5 text-sm font-bold tracking-wide hover:bg-gray-100 transition-colors disabled:opacity-50"
             >
               {isLogin ? "Need an account? Sign up" : "Already have an account? Log in"}
             </button>

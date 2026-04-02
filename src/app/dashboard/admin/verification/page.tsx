@@ -1,5 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
+import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { updateWinningStatus } from "../actions";
+import { LoadingButton } from "@/components/ui/LoadingButton";
 
 async function handleWinningStatus(formData: FormData) {
   "use server";
@@ -8,6 +10,14 @@ async function handleWinningStatus(formData: FormData) {
 
 export default async function VerificationPage() {
   const supabase = await createClient();
+  const supabaseAdmin = createSupabaseAdmin(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  // Fetch all users to create an email mapping
+  const { data: userData } = await supabaseAdmin.auth.admin.listUsers();
+  const emailMap = Object.fromEntries((userData?.users || []).map((u) => [u.id, u.email]));
 
   const { data: winnings } = await supabase
     .from("winnings")
@@ -50,26 +60,24 @@ export default async function VerificationPage() {
       {/* Winnings table */}
       <div className="brand-card overflow-hidden">
         {(winnings || []).length === 0 ? (
-          <div className="py-16 text-center">
-            <p className="text-gray-400 font-medium text-sm">No winnings records yet. Run a draw first.</p>
+          <div className="py-24 text-center">
+            <p className="text-gray-400 font-bold text-sm">No winnings records yet. Run a draw first.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-100">
+            <table className="brand-table">
+              <thead>
                 <tr>
-                  {["User ID", "Draw Date", "Match Type", "Prize Amount", "Proof", "Status", "Actions"].map((h) => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
-                      {h}
-                    </th>
+                  {["Winner Email", "Draw Date", "Match Type", "Prize Amount", "Proof", "Status", "Actions"].map((h) => (
+                    <th key={h}>{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody>
                 {(winnings || []).map((w: any) => (
-                  <tr key={w.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 font-mono text-xs text-gray-400">
-                      {w.user_id?.substring(0, 12)}...
+                  <tr key={w.id}>
+                    <td className="font-black text-[#111]">
+                      {emailMap[w.user_id] || "Unknown User"}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600 font-medium">
                       {w.draws?.draw_date
@@ -87,59 +95,56 @@ export default async function VerificationPage() {
                         {w.match_type}
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-black text-[#111]">
+                    <td className="font-black text-[#e63946]">
                       ${w.amount?.toFixed(2)}
                     </td>
-                    <td className="px-4 py-3">
+                    <td>
                       {w.proof_url ? (
                         <a href={w.proof_url} target="_blank" rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-xs font-bold text-[#e63946] hover:text-[#111] transition-colors border border-red-200 bg-red-50 px-3 py-1.5 rounded-lg">
+                          className="inline-flex items-center gap-1.5 text-[10px] font-black text-[#e63946] hover:text-[#111] transition-colors border border-red-100 bg-red-50 px-3 py-1.5 rounded-lg uppercase tracking-wider">
                           <span>📷</span> View Proof
                         </a>
                       ) : (
-                        <span className="text-xs text-gray-300 font-medium">Not submitted</span>
+                        <span className="text-[10px] text-gray-300 font-black uppercase tracking-widest">No Proof</span>
                       )}
                     </td>
-                    <td className="px-4 py-3">
-                      <span className={`text-xs font-bold capitalize ${
-                        w.status === "paid" ? "text-green-600"
-                        : w.status === "verified" ? "text-blue-600"
-                        : w.status === "rejected" ? "text-red-500"
-                        : "text-orange-500"
-                      }`}>
+                    <td>
+                      <span className={
+                        w.status === "paid" ? "badge-green"
+                        : w.status === "verified" ? "badge-red"
+                        : w.status === "rejected" ? "badge-gray line-through"
+                        : "badge-amber"
+                      }>
                         {w.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td>
                       {w.status === "pending" && (
                         <div className="flex gap-2">
                           <form action={handleWinningStatus}>
                             <input type="hidden" name="winning_id" value={w.id} />
-                            <button name="action" value="verify" type="submit"
-                              className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg font-black hover:bg-green-700 transition-colors uppercase tracking-wider">
+                            <LoadingButton name="action" value="verify" variant="success">
                               Verify
-                            </button>
+                            </LoadingButton>
                           </form>
                           <form action={handleWinningStatus}>
                             <input type="hidden" name="winning_id" value={w.id} />
-                            <button name="action" value="reject" type="submit"
-                              className="text-xs bg-red-50 text-red-600 border border-red-200 px-3 py-1.5 rounded-lg font-black hover:bg-red-100 transition-colors uppercase tracking-wider">
+                            <LoadingButton name="action" value="reject" variant="danger">
                               Reject
-                            </button>
+                            </LoadingButton>
                           </form>
                         </div>
                       )}
                       {w.status === "verified" && (
                         <form action={handleWinningStatus}>
                           <input type="hidden" name="winning_id" value={w.id} />
-                          <button name="action" value="pay" type="submit"
-                            className="text-xs bg-[#111] text-white px-3 py-1.5 rounded-lg font-black hover:bg-[#e63946] transition-colors uppercase tracking-wider">
+                          <LoadingButton name="action" value="pay" variant="dark">
                             Mark Paid
-                          </button>
+                          </LoadingButton>
                         </form>
                       )}
                       {(w.status === "paid" || w.status === "rejected") && (
-                        <span className="text-xs text-gray-300 font-medium">—</span>
+                        <span className="text-[10px] text-gray-300 font-black uppercase">Complete</span>
                       )}
                     </td>
                   </tr>

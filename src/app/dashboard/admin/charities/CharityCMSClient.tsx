@@ -25,8 +25,8 @@ export default function CharityCMSClient({
     setCharities(initial);
   }, [initial]);
 
-  const [addState, addAction] = useActionState(addCharity, null);
-  const [editState, editAction] = useActionState(updateCharity, null);
+  const [addState, addAction, isAdding] = useActionState(addCharity, (null as any));
+  const [editState, editAction, isEditing] = useActionState(updateCharity, (null as any));
 
   const handleDelete = (id: string) => {
     if (!confirm("Delete this charity? This cannot be undone.")) return;
@@ -73,9 +73,11 @@ export default function CharityCMSClient({
             <CharityForm />
             <button
               type="submit"
-              className="bg-[#111] text-white px-6 py-3 rounded-xl text-sm font-black uppercase tracking-widest hover:bg-[#e63946] transition-all"
+              disabled={isAdding}
+              className="bg-[#111] text-white px-6 py-3 rounded-xl text-sm font-black uppercase tracking-widest hover:bg-[#e63946] transition-all disabled:opacity-50 flex items-center gap-2"
             >
-              Add Charity
+              {isAdding && <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+              {isAdding ? "Adding..." : "Add Charity"}
             </button>
           </form>
         )}
@@ -105,9 +107,11 @@ export default function CharityCMSClient({
             <CharityForm charity={editing} />
             <button
               type="submit"
-              className="bg-[#e63946] text-white px-6 py-3 rounded-xl text-sm font-black uppercase tracking-widest hover:bg-[#111] transition-all"
+              disabled={isEditing}
+              className="bg-[#e63946] text-white px-6 py-3 rounded-xl text-sm font-black uppercase tracking-widest hover:bg-[#111] transition-all disabled:opacity-50 flex items-center gap-2"
             >
-              Save Changes
+              {isEditing && <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+              {isEditing ? "Saving..." : "Save Changes"}
             </button>
           </form>
         </div>

@@ -10,6 +10,7 @@ export default function ScoresClient({ initialScores }: Props) {
   const [scores, setScores] = useState(initialScores);
   const [editing, setEditing] = useState<Score | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     setScores(initialScores);

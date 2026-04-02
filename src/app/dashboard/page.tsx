@@ -41,7 +41,9 @@ export default async function DashboardOverview() {
   const totalDraws = drawsRes.count ?? 0;
   const isAdmin = profile?.role === "admin";
 
-  const totalWon = winnings.reduce((s, w) => s + (w.amount || 0), 0);
+  // Only count winnings that aren't rejected
+  const activeWinnings = winnings.filter((w) => w.status !== "rejected");
+  const totalWon = activeWinnings.reduce((s, w) => s + (w.amount || 0), 0);
   const pendingWinnings = winnings.filter((w) => w.status === "pending");
   const hasActiveSub = subscription?.status === "active" || subscription?.status === "trialing";
 
@@ -83,7 +85,7 @@ export default async function DashboardOverview() {
               <p className="font-black text-[#111] text-base">You won a draw!</p>
               <p className="text-gray-500 text-sm mt-0.5">
                 Upload your scorecard proof to claim your{" "}
-                <span className="font-black text-[#e63946]">
+                <span className="font-black text-[var(--brand-red-text)]">
                   ${pendingWinnings.reduce((s, w) => s + (w.amount || 0), 0).toFixed(2)}
                 </span>{" "}
                 prize.
@@ -168,7 +170,7 @@ export default async function DashboardOverview() {
             },
             {
               label: "Wins",
-              value: winnings.filter((w) => w.status !== "pending" || w.amount > 0).length,
+              value: winnings.filter((w) => w.status === "paid" || w.status === "verified").length,
               sub: "from all draws",
             },
             {
@@ -245,19 +247,15 @@ export default async function DashboardOverview() {
               {winnings.map((w: any) => (
                 <div key={w.id} className="flex items-center justify-between py-2.5 border-b border-gray-50 last:border-0">
                   <div className="flex items-center gap-3">
-                    <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
-                      w.match_type === "5-match" ? "bg-[#e63946] text-white"
-                      : w.match_type === "4-match" ? "bg-[#111] text-white"
-                      : "bg-gray-100 text-gray-600"
-                    }`}>
+                    <span className={`badge-dark !text-[10px]`}>
                       {w.match_type}
                     </span>
-                    <span className={`text-[10px] font-bold capitalize ${
-                      w.status === "paid" ? "text-green-600"
-                      : w.status === "verified" ? "text-blue-500"
-                      : w.status === "rejected" ? "text-red-400"
-                      : "text-orange-500"
-                    }`}>
+                    <span className={
+                      w.status === "paid" ? "badge-green"
+                      : w.status === "verified" ? "badge-red"
+                      : w.status === "rejected" ? "badge-gray line-through"
+                      : "badge-amber"
+                    }>
                       {w.status}
                     </span>
                   </div>

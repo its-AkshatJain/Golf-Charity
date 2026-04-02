@@ -1,11 +1,24 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { runDraw } from "../actions";
+import { useActionState, useState, useTransition } from "react";
+import { runDraw, simulateWin } from "../actions";
 
 export default function DrawClient() {
   const [mode, setMode] = useState<"random" | "algorithmic">("random");
   const [state, formAction, isPending] = useActionState(runDraw, null);
+  const [isSimulating, startSimulation] = useTransition();
+  const [simMessage, setSimMessage] = useState<string | null>(null);
+
+  const handleSimulate = () => {
+    startSimulation(async () => {
+      const res = await simulateWin();
+      if (res.success) {
+        setSimMessage(res.message || "Win simulated! Check your dashboard.");
+      } else {
+        alert(res.error || "Simulation failed.");
+      }
+    });
+  };
 
   return (
     <div className="brand-card p-6 border-2 border-[#111]">
@@ -75,15 +88,35 @@ export default function DrawClient() {
 
         <button
           type="submit"
-          disabled={isPending}
-          className="w-full bg-[#e63946] text-white py-4 rounded-xl font-black text-sm uppercase tracking-widest hover:bg-[#111] transition-all disabled:opacity-50"
+          disabled={isPending || isSimulating}
+          className="w-full bg-[#111] text-white py-4 rounded-xl font-black text-sm uppercase tracking-widest hover:bg-[#e63946] transition-all disabled:opacity-50"
         >
           {isPending ? "Running Draw..." : "🎲 Execute Monthly Draw"}
         </button>
-        <p className="text-xs text-gray-400 text-center">
-          This will match all active subscriber scores against 5 drawn numbers
-          and assign prizes automatically.
+
+        {/* 
+        <div className="pt-4 border-t border-gray-100">
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 text-center">Testing Utilities</p>
+          <button
+            type="button"
+            onClick={handleSimulate}
+            disabled={isPending || isSimulating}
+            className="w-full bg-white border-2 border-[#e63946] text-[#e63946] py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#e63946] hover:text-white transition-all disabled:opacity-50"
+          >
+            {isSimulating ? "Simulating..." : "★ Force My Win (Cheat Mode)"}
+          </button>
+          {(simMessage || state?.success) && (
+            <p className="text-[10px] text-green-600 font-bold mt-2 text-center">
+              {simMessage || state?.message}
+            </p>
+          )}
+        </div>
+
+        <p className="text-[10px] text-gray-400 text-center px-4">
+          The monthly draw will match all active subscriber scores against 5 drawn numbers.
+          Use Cheat Mode to bypass probability and instantly manifest a winning record for your current account.
         </p>
+        */}
       </form>
     </div>
   );

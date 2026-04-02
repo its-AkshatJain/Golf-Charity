@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
+import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { updateUserRole } from "../actions";
 import type { FC } from "react";
 
@@ -9,9 +10,16 @@ async function handleRoleUpdate(formData: FormData) {
 
 export default async function AdminUsersPage() {
   const supabase = await createClient();
+  const supabaseAdmin = createSupabaseAdmin(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
-  // Join profiles with auth users via email is not possible directly,
-  // but we can get profile data + subscriptions
+  // Fetch all users to get emails (identifiable information)
+  const { data: userData } = await supabaseAdmin.auth.admin.listUsers();
+  const emails = Object.fromEntries((userData?.users || []).map((u) => [u.id, u.email]));
+
+  // Join profiles with auth users
   const { data: profiles } = await supabase
     .from("profiles")
     .select("id, role, selected_charity_id, charity_contribution_percentage, created_at, charities(name)")
@@ -54,7 +62,7 @@ export default async function AdminUsersPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {["User ID", "Role", "Subscription", "Charity", "Scores", "Contribution %", "Actions"].map(
+                {["Email", "Role", "Subscription", "Charity", "Scores", "Contribution %", "Actions"].map(
                   (h) => (
                     <th
                       key={h}
@@ -71,8 +79,8 @@ export default async function AdminUsersPage() {
                 const sub = subsByUser[p.id];
                 return (
                   <tr key={p.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 font-mono text-xs text-gray-400">
-                      {p.id.substring(0, 12)}...
+                    <td className="px-4 py-3 font-semibold text-xs text-[#111]">
+                      {emails[p.id] || "Unknown User"}
                     </td>
                     <td className="px-4 py-3">
                       <span

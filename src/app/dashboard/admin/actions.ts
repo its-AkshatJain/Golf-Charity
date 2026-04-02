@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
+import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -294,4 +295,54 @@ export async function updateWinningStatus(formData: FormData) {
   revalidatePath("/dashboard/admin/verification");
   revalidatePath("/dashboard");
   return { success: true };
+}
+
+// ─── TEST SIMULATOR ────────────────────────────────────────────
+
+export async function simulateWin() {
+  const { user } = await assertAdmin();
+
+  // We need the admin client to bypass RLS for creating draws/winnings
+  const supabaseAdmin = createSupabaseAdmin(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  // 1. Create a dummy draw
+  const { data: draw, error: drawError } = await supabaseAdmin
+    .from("draws")
+    .insert({
+      draw_date: new Date().toISOString(),
+      status: "published",
+      prize_pool: 100, // Reduced from 1000 for realistic simulation
+      draw_type: "algorithmic", // Must match CHECK constraint: random or algorithmic
+    })
+    .select()
+    .single();
+
+  if (drawError || !draw) {
+    console.error("Simulation Draw Error:", drawError);
+    return { error: "Failed to create dummy draw: " + (drawError?.message || "Unknown error") };
+  }
+
+  // 2. Insert a 5-match win for the CURRENT AUTHENTICATED USER
+  const { error: winError } = await supabaseAdmin
+    .from("winnings")
+    .insert({
+      user_id: user.id,
+      draw_id: draw.id,
+      match_type: "5-match",
+      amount: 40.00, // 40% of the $100 test pool
+      status: "pending",
+    });
+
+  if (winError) {
+    console.error("Simulation Winnings Error:", winError);
+    return { error: "Failed to insert simulated win: " + winError.message };
+  }
+
+  revalidatePath("/dashboard/admin/verification");
+  revalidatePath("/dashboard");
+
+  return { success: true, message: "Simulation successful! You (the admin) are now a jackpot winner. Check your Dashboard Overview." };
 }
