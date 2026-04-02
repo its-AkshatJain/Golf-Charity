@@ -32,10 +32,6 @@ export default async function DashboardLayout({
     subscription &&
     (subscription.status === "active" || subscription.status === "trialing");
 
-  if (!isAdmin && !hasActiveAccess) {
-    redirect("/onboarding");
-  }
-
   return (
     <div className="min-h-screen bg-[#f8f5ef] flex">
       <Sidebar isAdmin={isAdmin ?? false} userEmail={user.email ?? ""} />

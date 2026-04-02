@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { saveOnboardingPreferences } from "./actions";
 import { Heart, HandCoins, Calendar, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
 
 type Charity = {
   id: string;
@@ -288,6 +289,15 @@ export default function OnboardingFlow({ charities }: { charities: Charity[] }) 
             )}
           </button>
         )}
+      </div>
+
+      <div className="mt-8 text-center">
+        <Link
+          href="/dashboard"
+          className="text-[10px] font-black tracking-widest uppercase text-gray-400 hover:text-[#e63946] transition-colors"
+        >
+          Skip for now — explore dashboard →
+        </Link>
       </div>
     </div>
   );

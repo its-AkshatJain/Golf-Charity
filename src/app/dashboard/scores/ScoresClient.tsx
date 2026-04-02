@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, useTransition, useOptimistic } from "react";
+import { useActionState, useState, useTransition, useEffect } from "react";
 import { addScore, deleteScore, updateScore } from "./actions";
 
 type Score = { id: string; score: number; date: string };
@@ -11,10 +11,20 @@ export default function ScoresClient({ initialScores }: Props) {
   const [editing, setEditing] = useState<Score | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  useEffect(() => {
+    setScores(initialScores);
+  }, [initialScores]);
+
   // Add score form state
   const [addState, addAction, isAdding] = useActionState(addScore, null);
   // Edit score form state
   const [editState, editAction, isEditing] = useActionState(updateScore, null);
+
+  useEffect(() => {
+    if (editState?.success) {
+      setEditing(null);
+    }
+  }, [editState?.success]);
 
   const handleDelete = (id: string) => {
     if (!confirm("Delete this score?")) return;
@@ -61,12 +71,6 @@ export default function ScoresClient({ initialScores }: Props) {
                   <form
                     action={editAction}
                     className="flex flex-wrap items-center gap-2 p-3 bg-red-50 rounded-xl border border-[#e63946]/30"
-                    onSubmit={() => {
-                      startTransition(() => {
-                        setEditing(null);
-                        // optimistically update scores
-                      });
-                    }}
                   >
                     <input type="hidden" name="scoreId" value={s.id} />
                     <input

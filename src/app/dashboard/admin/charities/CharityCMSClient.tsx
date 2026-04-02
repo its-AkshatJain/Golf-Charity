@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, useTransition } from "react";
+import { useActionState, useState, useTransition, useEffect } from "react";
 import { addCharity, updateCharity, deleteCharity } from "../actions";
 
 type Charity = {
@@ -20,6 +20,10 @@ export default function CharityCMSClient({
   const [editing, setEditing] = useState<Charity | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    setCharities(initial);
+  }, [initial]);
 
   const [addState, addAction] = useActionState(addCharity, null);
   const [editState, editAction] = useActionState(updateCharity, null);

@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
+import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -42,11 +43,16 @@ export async function deleteScore(scoreId: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { error } = await supabase
+  const supabaseAdmin = createSupabaseAdmin(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const { error } = await supabaseAdmin
     .from("scores")
     .delete()
     .eq("id", scoreId)
-    .eq("user_id", user.id); // Ownership check
+    .eq("user_id", user.id); // Ownership check still maintained
 
   if (error) {
     return { error: "Could not delete score." };
@@ -72,7 +78,12 @@ export async function updateScore(prevState: any, formData: FormData) {
   }
   if (!dateStr) return { error: "Please select a date." };
 
-  const { error } = await supabase
+  const supabaseAdmin = createSupabaseAdmin(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const { error } = await supabaseAdmin
     .from("scores")
     .update({ score, date: new Date(dateStr).toISOString() })
     .eq("id", scoreId)

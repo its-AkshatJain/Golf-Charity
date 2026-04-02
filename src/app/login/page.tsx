@@ -1,10 +1,10 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, Suspense } from "react";
 import { login, signup } from "./actions";
 import { useSearchParams } from "next/navigation";
 
-export default function LoginPage() {
+function LoginContent() {
   const searchParams = useSearchParams();
   const errorParam = searchParams.get("error");
   const messageParam = searchParams.get("message");
@@ -76,5 +76,17 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center p-4 bg-[#fcf9f2]">
+        <div className="animate-pulse text-[#e63946] font-bold">Loading...</div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }

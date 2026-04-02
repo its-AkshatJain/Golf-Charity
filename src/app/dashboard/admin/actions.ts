@@ -128,17 +128,61 @@ export async function runDraw(prevState: any, formData: FormData) {
   // Prize pool: $15/subscriber → 60% goes to prize pool (rest is charity + ops)
   const prizePool = participants * 15 * 0.6;
 
-  // Number pool: 1–45 (Stableford range)
-  const drawnNumbers = Array.from({ length: 5 }, () =>
-    Math.floor(Math.random() * 45) + 1
-  );
+  // 2. Get scores for all active subscribers (needed for algorithmic mode + matching)
+  const userIds = activeSubs.map((s) => s.user_id);
+  const { data: scores } = await supabase
+    .from("scores")
+    .select("user_id, score")
+    .in("user_id", userIds);
 
-  // 2. Create draw record
+  const scoresByUser: Record<string, number[]> = {};
+  const scoreFrequencies: Record<number, number> = {};
+  // Base weight of 1 for all numbers so even unplayed numbers have a small chance
+  for (let i = 1; i <= 45; i++) scoreFrequencies[i] = 1;
+
+  for (const s of scores || []) {
+    if (!scoresByUser[s.user_id]) scoresByUser[s.user_id] = [];
+    scoresByUser[s.user_id].push(s.score);
+    if (s.score >= 1 && s.score <= 45) {
+      scoreFrequencies[s.score] += 50; // heavily increased weight for testing visibility
+    }
+  }
+
+  // 3. Number pool: 1–45 (Stableford range) - Pick 5 DISTINCT numbers
+  const drawnNumbers: number[] = [];
+  const available = Array.from({ length: 45 }, (_, i) => i + 1);
+
+  if (mode === "algorithmic") {
+    // Weighted selection (without replacement)
+    while (drawnNumbers.length < 5 && available.length > 0) {
+      const totalWeight = available.reduce((sum, n) => sum + scoreFrequencies[n], 0);
+      let rand = Math.random() * totalWeight;
+      let selectedNumber = available[0];
+      for (const n of available) {
+        rand -= scoreFrequencies[n];
+        if (rand <= 0) {
+          selectedNumber = n;
+          break;
+        }
+      }
+      drawnNumbers.push(selectedNumber);
+      available.splice(available.indexOf(selectedNumber), 1);
+    }
+  } else {
+    // Pure random without replacement
+    while (drawnNumbers.length < 5) {
+      const idx = Math.floor(Math.random() * available.length);
+      drawnNumbers.push(available[idx]);
+      available.splice(idx, 1);
+    }
+  }
+
+  // 4. Create draw record
   const { data: draw, error: drawError } = await supabase
     .from("draws")
     .insert({
       draw_date: new Date().toISOString(),
-      status: "pending",
+      status: "published", // Automatically publish so it shows up
       prize_pool: prizePool,
       draw_type: mode,
     })
@@ -149,19 +193,6 @@ export async function runDraw(prevState: any, formData: FormData) {
     return { error: "Failed to create draw: " + drawError?.message };
   }
 
-  // 3. Get scores for all active subscribers to match against drawn numbers
-  const userIds = activeSubs.map((s) => s.user_id);
-  const { data: scores } = await supabase
-    .from("scores")
-    .select("user_id, score")
-    .in("user_id", userIds);
-
-  const scoresByUser: Record<string, number[]> = {};
-  for (const s of scores || []) {
-    if (!scoresByUser[s.user_id]) scoresByUser[s.user_id] = [];
-    scoresByUser[s.user_id].push(s.score);
-  }
-
   // 4. Determine match type per user
   const fiveMatchWinners: string[] = [];
   const fourMatchWinners: string[] = [];
@@ -169,7 +200,8 @@ export async function runDraw(prevState: any, formData: FormData) {
 
   for (const sub of activeSubs) {
     const userScores = scoresByUser[sub.user_id] || [];
-    const matches = userScores.filter((score) =>
+    const uniqueUserScores = Array.from(new Set(userScores));
+    const matches = uniqueUserScores.filter((score) =>
       drawnNumbers.includes(score)
     ).length;
 
