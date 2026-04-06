@@ -89,7 +89,7 @@ export async function deleteCharity(charityId: string) {
 // ─── USER MANAGEMENT ───────────────────────────────────────────
 
 export async function updateUserRole(formData: FormData) {
-  const { supabase } = await assertAdmin();
+  await assertAdmin();
   const userId = formData.get("user_id") as string;
   const role = formData.get("role") as string;
 
@@ -98,7 +98,12 @@ export async function updateUserRole(formData: FormData) {
     return { error: "Invalid role or user." };
   }
 
-  const { error } = await supabase
+  const supabaseAdmin = createSupabaseAdmin(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const { error } = await supabaseAdmin
     .from("profiles")
     .update({ role })
     .eq("id", userId);
