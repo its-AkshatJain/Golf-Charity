@@ -3,10 +3,7 @@ import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { updateUserRole } from "../actions";
 import type { FC } from "react";
 
-async function handleRoleUpdate(formData: FormData) {
-  "use server";
-  await updateUserRole(formData);
-}
+import RoleUpdateForm from "./RoleUpdateForm";
 
 export default async function AdminUsersPage() {
   const supabase = await createClient();
@@ -120,24 +117,7 @@ export default async function AdminUsersPage() {
                       {p.charity_contribution_percentage}%
                     </td>
                     <td className="px-4 py-3">
-                      <form action={handleRoleUpdate} className="flex items-center gap-2">
-                        <input type="hidden" name="user_id" value={p.id} />
-                        <select
-                          name="role"
-                          defaultValue={p.role}
-                          className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white font-semibold focus:outline-none focus:border-[#e63946]"
-                        >
-                          <option value="public">Public</option>
-                          <option value="subscriber">Subscriber</option>
-                          <option value="admin">Admin</option>
-                        </select>
-                        <button
-                          type="submit"
-                          className="text-xs bg-[#111] text-white px-3 py-1.5 rounded-lg font-black hover:bg-[#e63946] transition-all whitespace-nowrap"
-                        >
-                          Save
-                        </button>
-                      </form>
+                      <RoleUpdateForm userId={p.id} defaultRole={p.role} />
                     </td>
                   </tr>
                 );

@@ -100,7 +100,6 @@ export default function DrawClient() {
           {isPending ? "Running Draw..." : "Execute Monthly Draw"}
         </button>
 
-        {/* 
         <div className="pt-4 border-t border-gray-100">
           <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 text-center">Testing Utilities</p>
           <button
@@ -109,7 +108,7 @@ export default function DrawClient() {
             disabled={isPending || isSimulating}
             className="w-full bg-white border-2 border-[#e63946] text-[#e63946] py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#e63946] hover:text-white transition-all disabled:opacity-50"
           >
-            {isSimulating ? "Simulating..." : "★ Force My Win (Cheat Mode)"}
+            {isSimulating ? "Simulating..." : "★ Force My Win (Testing Only)"}
           </button>
           {(simMessage || state?.success) && (
             <p className="text-[10px] text-green-600 font-bold mt-2 text-center">
@@ -120,9 +119,8 @@ export default function DrawClient() {
 
         <p className="text-[10px] text-gray-400 text-center px-4">
           The monthly draw will match all active subscriber scores against 5 drawn numbers.
-          Use Cheat Mode to bypass probability and instantly manifest a winning record for your current account.
+          Use the Testing Utility to bypass probability and instantly manifest a winning record to test the prize pool logic.
         </p>
-        */}
       </form>
     </div>
   );

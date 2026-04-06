@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { sendWinnerNotification, sendDrawPublishedNotification } from "@/utils/email";
 
 async function assertAdmin() {
   const supabase = await createClient();
@@ -88,7 +89,7 @@ export async function deleteCharity(charityId: string) {
 
 // ─── USER MANAGEMENT ───────────────────────────────────────────
 
-export async function updateUserRole(formData: FormData) {
+export async function updateUserRole(prevState: any, formData: FormData) {
   await assertAdmin();
   const userId = formData.get("user_id") as string;
   const role = formData.get("role") as string;
@@ -138,19 +139,29 @@ export async function runDraw(prevState: any, formData: FormData) {
   const userIds = activeSubs.map((s) => s.user_id);
   const { data: scores } = await supabase
     .from("scores")
-    .select("user_id, score")
+    .select("user_id, score, date")
     .in("user_id", userIds);
+
+  const rawScoresByUser: Record<string, Array<{date: string; score: number}>> = {};
+  for (const s of scores || []) {
+    if (!rawScoresByUser[s.user_id]) rawScoresByUser[s.user_id] = [];
+    rawScoresByUser[s.user_id].push(s);
+  }
 
   const scoresByUser: Record<string, number[]> = {};
   const scoreFrequencies: Record<number, number> = {};
   // Base weight of 1 for all numbers so even unplayed numbers have a small chance
   for (let i = 1; i <= 45; i++) scoreFrequencies[i] = 1;
 
-  for (const s of scores || []) {
-    if (!scoresByUser[s.user_id]) scoresByUser[s.user_id] = [];
-    scoresByUser[s.user_id].push(s.score);
-    if (s.score >= 1 && s.score <= 45) {
-      scoreFrequencies[s.score] += 50; // heavily increased weight for testing visibility
+  for (const uid in rawScoresByUser) {
+    const sorted = rawScoresByUser[uid].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const latest5 = sorted.slice(0, 5).map(s => s.score);
+    scoresByUser[uid] = latest5;
+
+    for (const score of latest5) {
+      if (score >= 1 && score <= 45) {
+        scoreFrequencies[score] += 50; // heavily increased weight for testing visibility
+      }
     }
   }
 
@@ -183,13 +194,32 @@ export async function runDraw(prevState: any, formData: FormData) {
     }
   }
 
+  // 3.5 Calculate Jackpot Rollover
+  const { data: pastDraws } = await supabase
+    .from("draws")
+    .select("id, prize_pool, winnings(match_type)")
+    .eq("status", "published")
+    .order("draw_date", { ascending: true });
+
+  let jackpotRollover = 0;
+  if (pastDraws?.length) {
+    for (const d of pastDraws) {
+      const has5Match = d.winnings?.some((w: any) => w.match_type === "5-match");
+      if (has5Match) {
+        jackpotRollover = 0;
+      } else {
+        jackpotRollover += d.prize_pool * 0.40;
+      }
+    }
+  }
+
   // 4. Create draw record
   const { data: draw, error: drawError } = await supabase
     .from("draws")
     .insert({
       draw_date: new Date().toISOString(),
-      status: "published", // Automatically publish so it shows up
-      prize_pool: prizePool,
+      status: "simulated", // Wait for admin confirmation before publish
+      prize_pool: prizePool, // Only store the base pool here!
       draw_type: mode,
     })
     .select()
@@ -219,7 +249,7 @@ export async function runDraw(prevState: any, formData: FormData) {
   // 5. Calculate prizes (PRD: 40% / 35% / 25%)
   const winningsToInsert: any[] = [];
 
-  const fiveShare = prizePool * 0.4;
+  const fiveShare = (prizePool * 0.4) + jackpotRollover;
   const fourShare = prizePool * 0.35;
   const threeShare = prizePool * 0.25;
 
@@ -260,7 +290,7 @@ export async function runDraw(prevState: any, formData: FormData) {
 
   // If no 5-match winner, rollover note
   const rolloverNote = fiveMatchWinners.length === 0
-    ? " No 5-match winner — jackpot rolls over to next draw."
+    ? ` No 5-match winner — $${fiveShare.toFixed(2)} jackpot rolls over!`
     : "";
 
   revalidatePath("/dashboard/admin/draws");
@@ -269,9 +299,58 @@ export async function runDraw(prevState: any, formData: FormData) {
 
   return {
     success: true,
-    message: `Draw executed! ${winningsToInsert.length} winner(s) across ${participants} participants. Pool: $${prizePool.toFixed(2)}.${rolloverNote}`,
+    message: `Draw simulated! ${winningsToInsert.length} winner(s) across ${participants} participants. Total Pool: $${(prizePool + jackpotRollover).toFixed(2)}.${rolloverNote}`,
     drawnNumbers,
   };
+}
+
+export async function publishDraw(drawId: string) {
+  const { supabase } = await assertAdmin();
+  const supabaseAdmin = createSupabaseAdmin(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const { data: draw, error } = await supabase
+    .from("draws")
+    .update({ status: "published" })
+    .eq("id", drawId)
+    .select()
+    .single();
+
+  if (error || !draw) return { error: "Failed to publish draw." };
+
+  const { data: winnings } = await supabase
+    .from("winnings")
+    .select("user_id, amount, match_type")
+    .eq("draw_id", drawId);
+
+  const { data: activeSubs } = await supabase
+    .from("subscriptions")
+    .select("user_id")
+    .eq("status", "active");
+
+  const { data: userData } = await supabaseAdmin.auth.admin.listUsers();
+  const emailsMap = Object.fromEntries((userData?.users || []).map((u) => [u.id, u.email]));
+
+  if (winnings) {
+    for (const win of winnings) {
+      const email = emailsMap[win.user_id];
+      if (email) {
+        sendWinnerNotification(email, win.amount, win.match_type).catch(console.error);
+      }
+    }
+  }
+
+  const broadcastEmails = (activeSubs || []).map(s => emailsMap[s.user_id]).filter(Boolean) as string[];
+  if (broadcastEmails.length > 0) {
+    sendDrawPublishedNotification(broadcastEmails, draw.prize_pool, []).catch(console.error);
+  }
+
+  revalidatePath("/dashboard/admin/draws");
+  revalidatePath("/dashboard/admin/verification");
+  revalidatePath("/dashboard");
+  return { success: true };
 }
 
 // ─── WINNER VERIFICATION ───────────────────────────────────────
@@ -313,41 +392,67 @@ export async function simulateWin() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  // 1. Create a dummy draw
+  // 1. Calculate realistic active subscribers pool
+  const { data: activeSubs } = await supabaseAdmin
+    .from("subscriptions")
+    .select("user_id")
+    .eq("status", "active");
+
+  const participants = activeSubs?.length || 0;
+  const prizePool = participants * 15 * 0.6; // Base pool
+
+  // 2. Compute exact rollover jackpot dynamically
+  const { data: pastDraws } = await supabaseAdmin
+    .from("draws")
+    .select("id, prize_pool, winnings(match_type)")
+    .eq("status", "published")
+    .order("draw_date", { ascending: true });
+
+  let jackpotRollover = 0;
+  if (pastDraws?.length) {
+    for (const d of pastDraws) {
+      const has5Match = d.winnings?.some((w: any) => w.match_type === "5-match");
+      if (has5Match) {
+        jackpotRollover = 0;
+      } else {
+        jackpotRollover += d.prize_pool * 0.40;
+      }
+    }
+  }
+
+  // 3. Create a dummy draw in simulated state
   const { data: draw, error: drawError } = await supabaseAdmin
     .from("draws")
     .insert({
       draw_date: new Date().toISOString(),
-      status: "published",
-      prize_pool: 100, // Reduced from 1000 for realistic simulation
-      draw_type: "algorithmic", // Must match CHECK constraint: random or algorithmic
+      status: "simulated",
+      prize_pool: prizePool,
+      draw_type: "random",
     })
     .select()
     .single();
 
-  if (drawError || !draw) {
-    console.error("Simulation Draw Error:", drawError);
-    return { error: "Failed to create dummy draw: " + (drawError?.message || "Unknown error") };
-  }
+  if (drawError || !draw) return { error: "Failed to create dummy draw: " + drawError?.message };
 
-  // 2. Insert a 5-match win for the CURRENT AUTHENTICATED USER
+  // 4. Calculate exact jackpot hitting
+  const fiveShare = (prizePool * 0.4) + jackpotRollover;
+
+  // 5. Insert a 5-match win for the CURRENT AUTHENTICATED USER
   const { error: winError } = await supabaseAdmin
     .from("winnings")
     .insert({
       user_id: user.id,
       draw_id: draw.id,
       match_type: "5-match",
-      amount: 40.00, // 40% of the $100 test pool
+      amount: fiveShare,
       status: "pending",
     });
 
-  if (winError) {
-    console.error("Simulation Winnings Error:", winError);
-    return { error: "Failed to insert simulated win: " + winError.message };
-  }
+  if (winError) return { error: "Failed to insert test win: " + winError.message };
 
+  revalidatePath("/dashboard/admin/draws");
   revalidatePath("/dashboard/admin/verification");
   revalidatePath("/dashboard");
 
-  return { success: true, message: "Simulation successful! You (the admin) are now a jackpot winner. Check your Dashboard Overview." };
+  return { success: true, message: `Testing Only: You hit the jackpot! $${fiveShare.toFixed(2)} allocated. Check the Dashboard Overview.` };
 }

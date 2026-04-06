@@ -1,20 +1,38 @@
 import { createClient } from "@/utils/supabase/server";
 import DrawClient from "./DrawClient";
+import PublishDrawButton from "./PublishDrawButton";
 
 export default async function AdminDrawsPage() {
   const supabase = await createClient();
 
-  const [activeSubsRes, drawsRes] = await Promise.all([
+  const [activeSubsRes, allDrawsRes] = await Promise.all([
     supabase.from("subscriptions").select("user_id", { count: "exact" }).eq("status", "active"),
     supabase
       .from("draws")
       .select("*, winnings(id, match_type, amount, status)")
-      .order("draw_date", { ascending: false })
-      .limit(10),
+      .order("draw_date", { ascending: true }),
   ]);
 
   const activeSubs = activeSubsRes.count ?? 0;
   const estimatedPool = activeSubs * 15 * 0.6;
+
+  let currentRollover = 0;
+  const enrichedDraws = (allDrawsRes.data || []).map((d: any) => {
+    const totalAvailablePool = d.prize_pool + currentRollover;
+    
+    if (d.status === "published") {
+      const has5Match = d.winnings?.some((w: any) => w.match_type === "5-match");
+      if (has5Match) {
+        currentRollover = 0;
+      } else {
+        currentRollover += d.prize_pool * 0.40;
+      }
+    }
+    
+    return { ...d, _totalAvailablePool: totalAvailablePool };
+  });
+
+  const displayDraws = enrichedDraws.reverse().slice(0, 10);
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
@@ -35,13 +53,13 @@ export default async function AdminDrawsPage() {
           <p className="text-3xl font-black text-[#0d0d0d]">{activeSubs}</p>
         </div>
         <div className="stat-card">
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Estimated Pool</p>
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Estimated Base Pool</p>
           <p className="text-3xl font-black text-[#0d0d0d]">${estimatedPool.toFixed(0)}</p>
           <p className="text-[11px] text-gray-400 font-medium">$15/sub × 60%</p>
         </div>
         <div className="rounded-[1.25rem] p-5 border border-[#e63946] bg-[#fff5f5] flex flex-col gap-2">
           <p className="text-[10px] font-black text-[#e63946] uppercase tracking-widest">Draws Run</p>
-          <p className="text-3xl font-black text-[#e63946]">{drawsRes.data?.length ?? 0}</p>
+          <p className="text-3xl font-black text-[#e63946]">{allDrawsRes.data?.length ?? 0}</p>
         </div>
       </div>
 
@@ -69,13 +87,13 @@ export default async function AdminDrawsPage() {
       <DrawClient />
 
       {/* Past draws */}
-      {drawsRes.data && drawsRes.data.length > 0 && (
+      {displayDraws.length > 0 && (
         <div className="brand-card p-6">
           <h2 className="font-black text-[#111] text-base uppercase tracking-tight mb-4">
             Draw History
           </h2>
           <div className="divide-y divide-gray-50">
-            {drawsRes.data.map((d: any) => (
+            {displayDraws.map((d: any) => (
               <div key={d.id} className="py-4 flex items-center justify-between gap-4">
                 <div>
                   <p className="font-bold text-[#111] text-sm">
@@ -88,14 +106,17 @@ export default async function AdminDrawsPage() {
                   <p className="text-xs text-gray-400 mt-0.5 capitalize">{d.draw_type} draw</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-black text-[#111]">${d.prize_pool?.toFixed(2)}</p>
+                  <p className="font-black text-[#111]">${d._totalAvailablePool?.toFixed(2)}</p>
                   <p className="text-xs text-gray-400">{d.winnings?.length ?? 0} winner(s)</p>
                 </div>
-                <span className={`text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full ${
-                  d.status === "published" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-600"
-                }`}>
-                  {d.status}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-md ${
+                    d.status === "published" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-600"
+                  }`}>
+                    {d.status}
+                  </span>
+                  {d.status === "simulated" && <PublishDrawButton drawId={d.id} />}
+                </div>
               </div>
             ))}
           </div>

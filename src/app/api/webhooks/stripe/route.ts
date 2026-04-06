@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { createClient } from '@supabase/supabase-js';
+import { sendSubscriptionUpdate } from '@/utils/email';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -45,6 +46,8 @@ export async function POST(req: Request) {
        const status = subscription.status === 'active' || subscription.status === 'trialing' ? 'active' : 'canceled';
        const renewalDate = new Date(subscription.current_period_end * 1000).toISOString();
 
+       const newPlan = planInterval === 'year' ? 'yearly' : 'monthly';
+
        // Check if exact subscription exists
        const { data: existingSub } = await supabaseAdmin
           .from('subscriptions')
@@ -55,16 +58,22 @@ export async function POST(req: Request) {
        if (existingSub) {
           await supabaseAdmin.from('subscriptions').update({
             status: status,
-            plan: planInterval === 'year' ? 'yearly' : 'monthly',
+            plan: newPlan,
             renewal_date: renewalDate
           }).eq('id', existingSub.id);
        } else {
           await supabaseAdmin.from('subscriptions').insert({
             user_id: supabaseUserId,
             status: status,
-            plan: planInterval === 'year' ? 'yearly' : 'monthly',
+            plan: newPlan,
             renewal_date: renewalDate
           });
+       }
+
+       // Notify user
+       const { data: userAuthData } = await supabaseAdmin.auth.admin.getUserById(supabaseUserId);
+       if (userAuthData?.user?.email) {
+          sendSubscriptionUpdate(userAuthData.user.email, status, newPlan).catch(console.error);
        }
     }
   }

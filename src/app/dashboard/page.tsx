@@ -172,7 +172,7 @@ export default async function DashboardOverview() {
         <div className="flex justify-between items-center mb-4">
           <h2 className="font-black text-[#111] text-base tracking-tight uppercase">Participation Summary</h2>
         </div>
-        <div className="grid grid-cols-3 gap-4 text-center">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
           {[
             {
               label: "Draws Entered",
@@ -189,6 +189,11 @@ export default async function DashboardOverview() {
               value: pendingWinnings.length,
               sub: "awaiting review",
               accent: pendingWinnings.length > 0,
+            },
+            {
+              label: "Next Draw",
+              value: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate().toString(),
+              sub: "end of month",
             },
           ].map((s) => (
             <div key={s.label} className="rounded-xl bg-gray-50 p-4">

@@ -16,8 +16,14 @@ export async function addScore(prevState: any, formData: FormData) {
     .eq("id", user.id)
     .single();
 
-  if (profile?.role === "public") {
-    return { error: "Only subscribers can record scores. Please upgrade your plan." };
+  const { data: sub } = await supabase
+    .from("subscriptions")
+    .select("status")
+    .eq("user_id", user.id)
+    .single();
+
+  if (profile?.role !== "admin" && sub?.status !== "active") {
+    return { error: "Only active subscribers can record scores. Please renew your plan." };
   }
 
   const score = parseInt(formData.get("score") as string, 10);
@@ -30,13 +36,32 @@ export async function addScore(prevState: any, formData: FormData) {
     return { error: "Please select a round date." };
   }
 
+  const parsedDate = new Date(dateStr).toISOString();
+
+  // Check if date is in the future
+  if (new Date(parsedDate) > new Date()) {
+    return { error: "You cannot enter a score for a future date." };
+  }
+
+  // Check if a score for this date already exists for the user
+  const { data: existingScore } = await supabase
+    .from("scores")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("date", parsedDate)
+    .maybeSingle();
+
+  if (existingScore) {
+    return { error: "You already have a score recorded for this date. Please edit your existing score instead." };
+  }
+
   // Insert the new score — the DB trigger will FIFO-delete the oldest if >5 exist
   const { error } = await supabase
     .from("scores")
     .insert({
       user_id: user.id,
       score,
-      date: new Date(dateStr).toISOString(),
+      date: parsedDate,
     });
 
   if (error) {
@@ -52,6 +77,13 @@ export async function deleteScore(scoreId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+  const { data: sub } = await supabase.from("subscriptions").select("status").eq("user_id", user.id).single();
+
+  if (profile?.role !== "admin" && sub?.status !== "active") {
+    return { error: "Only active subscribers can delete scores." };
+  }
 
   const supabaseAdmin = createSupabaseAdmin(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -79,6 +111,13 @@ export async function updateScore(prevState: any, formData: FormData) {
   if (!user) redirect("/login");
 
   const scoreId = formData.get("scoreId") as string;
+  
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+  const { data: sub } = await supabase.from("subscriptions").select("status").eq("user_id", user.id).single();
+
+  if (profile?.role !== "admin" && sub?.status !== "active") {
+    return { error: "Only active subscribers can update scores. Please renew your plan." };
+  }
   const score = parseInt(formData.get("score") as string, 10);
   const dateStr = formData.get("date") as string;
 
@@ -88,6 +127,24 @@ export async function updateScore(prevState: any, formData: FormData) {
   }
   if (!dateStr) return { error: "Please select a date." };
 
+  // Check if changing to a date that already has a score
+  const parsedDate = new Date(dateStr).toISOString();
+
+  if (new Date(parsedDate) > new Date()) {
+    return { error: "You cannot update a score to a future date." };
+  }
+
+  const { data: existingScore } = await supabase
+    .from("scores")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("date", parsedDate)
+    .maybeSingle();
+
+  if (existingScore && existingScore.id !== scoreId) {
+    return { error: "You already have a score recorded for this newly selected date." };
+  }
+
   const supabaseAdmin = createSupabaseAdmin(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -95,7 +152,7 @@ export async function updateScore(prevState: any, formData: FormData) {
 
   const { error } = await supabaseAdmin
     .from("scores")
-    .update({ score, date: new Date(dateStr).toISOString() })
+    .update({ score, date: parsedDate })
     .eq("id", scoreId)
     .eq("user_id", user.id);
 

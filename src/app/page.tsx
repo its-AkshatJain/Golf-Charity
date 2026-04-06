@@ -32,7 +32,13 @@ export default async function HomePage() {
               href="#charities"
               className="text-sm font-bold text-gray-600 hover:text-[#111] transition-colors hidden md:block"
             >
-              Charities
+              Featured
+            </Link>
+            <Link
+              href="/charities"
+              className="text-sm font-bold text-[#e63946] hover:text-[#111] transition-colors hidden md:block"
+            >
+              Directory
             </Link>
             {user ? (
               <Link
@@ -75,20 +81,20 @@ export default async function HomePage() {
 
         {/* Hero content */}
         <div className="relative z-10 max-w-4xl mx-auto px-6 text-center pt-16">
-          <p className="font-mono text-xs tracking-[0.4em] uppercase mb-6 font-black drop-shadow-md !text-white">
+          <p className="font-mono text-xs tracking-[0.4em] uppercase mb-6 font-black drop-shadow-md !text-white opacity-0 animate-fade-up" style={{ animationFillMode: 'forwards' }}>
             Golf · Charity · Impact
           </p>
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-none mb-8 drop-shadow-[0_8px_32px_rgba(0,0,0,0.5)] !text-white">
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-none mb-8 drop-shadow-[0_8px_32px_rgba(0,0,0,0.5)] !text-white opacity-0 animate-fade-up" style={{ animationDelay: '150ms', animationFillMode: 'forwards' }}>
             Every round
             <br />
             funds a future.
           </h1>
-          <p className="text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed mb-12 drop-shadow-sm !text-white">
+          <p className="text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed mb-12 drop-shadow-sm !text-white opacity-0 animate-fade-up" style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
             You play Stableford. Your subscription enters a monthly draw. Your
             winnings — and your charity's share — change lives. It's that
             simple.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center opacity-0 animate-fade-up" style={{ animationDelay: '450ms', animationFillMode: 'forwards' }}>
             <Link
               href="/onboarding"
               className="bg-[#e63946] text-white px-10 py-5 rounded-2xl text-base font-black tracking-wide hover:bg-white hover:text-[#e63946] transition-all duration-300 hover:shadow-2xl hover:shadow-red-900/30 inline-flex items-center gap-2 group"
@@ -105,17 +111,17 @@ export default async function HomePage() {
           </div>
 
           {/* Trust badges — sitting on top of the light vignette footer of the hero */}
-          <div className="flex flex-wrap items-center justify-center gap-6 mt-16 text-[#111] text-[10px] md:text-xs font-black tracking-[0.2em] uppercase">
+          <div className="flex flex-wrap items-center justify-center gap-6 mt-16 text-[#111] text-[10px] md:text-xs font-black tracking-[0.2em] uppercase opacity-0 animate-fade-up" style={{ animationDelay: '600ms', animationFillMode: 'forwards' }}>
             <span className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#e63946]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#e63946] animate-pulse" />
               Stripe-secured payments
             </span>
             <span className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#e63946]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#e63946] animate-pulse" style={{ animationDelay: '200ms' }} />
               Verified charities
             </span>
             <span className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#e63946]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#e63946] animate-pulse" style={{ animationDelay: '400ms' }} />
               Monthly draws
             </span>
           </div>
@@ -164,9 +170,9 @@ export default async function HomePage() {
                 color: "bg-white border border-[#111]/10",
                 textColor: "text-[#111]",
               },
-            ].map((s) => (
-              <div key={s.step} className={`${s.color} ${s.textColor} p-10 rounded-[2.5rem] relative overflow-hidden transition-all duration-500 hover:-translate-y-2 shadow-xl`}>
-                <div className="absolute top-8 right-8 opacity-20 font-black text-6xl tracking-tighter">
+            ].map((s, i) => (
+              <div key={s.step} className={`${s.color} ${s.textColor} p-10 rounded-[2.5rem] relative overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:scale-[1.02] shadow-xl group opacity-0 animate-fade-up`} style={{ animationDelay: `${200 + i * 150}ms`, animationFillMode: 'forwards' }}>
+                <div className="absolute top-8 right-8 opacity-20 font-black text-6xl tracking-tighter transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3">
                   {s.step}
                 </div>
                 <div className="mb-6 w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center">
@@ -201,8 +207,8 @@ export default async function HomePage() {
               { id: "1", title: "Monthly Draws", body: "Transparent prize distributions handled every 30 days.", icon: <Sparkles className="w-10 h-10 text-[#e63946]" /> },
               { id: "2", title: "Stripe Secured", body: "Financial operations managed by the world's most trusted processor.", icon: <ShieldCheck className="w-10 h-10 text-blue-500" /> },
               { id: "3", title: "Charity Focus", body: "Direct routing of percentage-based winnings to verified partners.", icon: <Heart className="w-10 h-10 text-red-500" /> },
-            ].map((item) => (
-              <div key={item.id} className="bg-white/5 backdrop-blur-md p-10 rounded-[2rem] border border-white/10 hover:border-white/20 transition-all text-center group">
+            ].map((item, i) => (
+              <div key={item.id} className="bg-white/5 backdrop-blur-md p-10 rounded-[2rem] border border-white/10 hover:border-white/30 transition-all duration-500 hover:shadow-[0_0_40px_rgba(230,57,70,0.15)] hover:-translate-y-2 text-center group opacity-0 animate-fade-up" style={{ animationDelay: `${200 + i * 150}ms`, animationFillMode: 'forwards' }}>
                 <div className="mb-6 flex justify-center group-hover:scale-110 transition-transform duration-300">
                   {item.icon}
                 </div>
@@ -229,10 +235,11 @@ export default async function HomePage() {
 
           {charities && charities.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {charities.map((c) => (
+              {charities.map((c, i) => (
                 <div
                   key={c.id}
-                  className="brand-card p-6 hover:shadow-2xl hover:shadow-red-900/5 hover:-translate-y-1 transition-all duration-300"
+                  className="brand-card p-6 hover:shadow-2xl hover:shadow-red-900/10 hover:-translate-y-2 hover:scale-[1.02] transition-all duration-500 opacity-0 animate-fade-up"
+                  style={{ animationDelay: `${200 + i * 100}ms`, animationFillMode: 'forwards' }}
                 >
                   {c.featured && (
                     <span className="inline-block bg-[#e63946] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-4">
@@ -251,6 +258,12 @@ export default async function HomePage() {
               <p className="text-gray-400 font-medium">Charities are being verified and will be listed soon.</p>
             </div>
           )}
+
+          <div className="mt-16 text-center">
+             <Link href="/charities" className="inline-flex items-center justify-center bg-[#111] text-white px-8 py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-[#e63946] transition-colors gap-2 shadow-xl">
+               View Charity Directory
+             </Link>
+          </div>
         </div>
       </section>
 

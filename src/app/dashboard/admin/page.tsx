@@ -4,22 +4,35 @@ import Link from "next/link";
 export default async function AdminOverviewPage() {
   const supabase = await createClient();
 
-  const [usersRes, charitiesRes, drawsRes, activeSubsRes] = await Promise.all([
+  const [usersRes, charitiesRes, allDrawsRes, activeSubsRes] = await Promise.all([
     supabase.from("profiles").select("*", { count: "exact", head: true }),
     supabase.from("charities").select("*", { count: "exact", head: true }),
     supabase
       .from("draws")
-      .select("id, draw_date, status, prize_pool, draw_type")
-      .order("draw_date", { ascending: false })
-      .limit(5),
+      .select("id, draw_date, status, prize_pool, draw_type, winnings(match_type)")
+      .order("draw_date", { ascending: true }),
     supabase
       .from("subscriptions")
       .select("*", { count: "exact", head: true })
       .eq("status", "active"),
   ]);
 
-  const draws = drawsRes.data || [];
-  const totalPool = draws.reduce((s, d) => s + (d.prize_pool || 0), 0);
+  let currentRollover = 0;
+  const enrichedDraws = (allDrawsRes.data || []).map((d: any) => {
+    const totalAvailablePool = d.prize_pool + currentRollover;
+    if (d.status === "published") {
+      const has5Match = d.winnings?.some((w: any) => w.match_type === "5-match");
+      if (has5Match) {
+        currentRollover = 0;
+      } else {
+        currentRollover += d.prize_pool * 0.40;
+      }
+    }
+    return { ...d, _totalAvailablePool: totalAvailablePool };
+  });
+
+  const displayDraws = [...enrichedDraws].reverse().slice(0, 5);
+  const totalPool = (allDrawsRes.data || []).reduce((s: number, d: any) => s + (d.prize_pool || 0), 0);
 
   return (
     <div className="space-y-8 animate-fade-up pb-12">
@@ -82,7 +95,7 @@ export default async function AdminOverviewPage() {
             Run Draw →
           </Link>
         </div>
-        {draws.length > 0 ? (
+        {displayDraws.length > 0 ? (
           <table className="w-full brand-table">
             <thead>
               <tr>
@@ -93,13 +106,13 @@ export default async function AdminOverviewPage() {
               </tr>
             </thead>
             <tbody>
-              {draws.map((d: any) => (
+              {displayDraws.map((d: any) => (
                 <tr key={d.id}>
                   <td className="font-semibold">
                     {new Date(d.draw_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                   </td>
                   <td className="capitalize text-gray-400">{d.draw_type}</td>
-                  <td className="font-black text-[#0d0d0d]">${d.prize_pool?.toFixed(2) ?? "0.00"}</td>
+                  <td className="font-black text-[#0d0d0d]">${d._totalAvailablePool?.toFixed(2) ?? "0.00"}</td>
                   <td>
                     <span className={d.status === "published" ? "badge-green" : "badge-amber"}>
                       {d.status}

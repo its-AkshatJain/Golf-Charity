@@ -3,6 +3,8 @@
 import { useActionState, useState, Suspense } from "react";
 import { login, signup } from "./actions";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 function LoginContent() {
   const searchParams = useSearchParams();
@@ -13,7 +15,12 @@ function LoginContent() {
   const [state, formAction, isPending] = useActionState(isLogin ? login : signup, null as any);
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 bg-[#fcf9f2] text-black transition-colors duration-500">
+    <div className="flex min-h-screen items-center justify-center p-4 bg-[#fcf9f2] text-black transition-colors duration-500 relative">
+      <Link href="/" className="absolute top-6 left-6 md:top-8 md:left-8 flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-[#e63946] transition-all hover:-translate-x-1">
+        <ArrowLeft className="w-4 h-4" />
+        Back to Home
+      </Link>
+      
       <div className="w-full max-w-sm space-y-8 bg-white p-8 rounded-2xl shadow-xl shadow-red-900/5">
         <div className="text-center space-y-3">
           <h1 className="text-3xl font-extrabold tracking-tight text-[#e63946]">PLAY FOR PURPOSE</h1>
