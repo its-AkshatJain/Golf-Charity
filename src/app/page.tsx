@@ -102,12 +102,12 @@ export default async function HomePage() {
               Start Playing
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <Link
+            {/* <Link
               href="/dashboard/admin"
               className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-10 py-5 rounded-2xl text-base font-bold hover:bg-white/20 transition-all duration-300 inline-flex items-center gap-2"
             >
               Admin Dashboard
-            </Link>
+            </Link> */}
           </div>
 
           {/* Trust badges — sitting on top of the light vignette footer of the hero */}
