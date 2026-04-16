@@ -40,7 +40,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f5ef] flex">
+    <div className="min-h-screen bg-[#f8f5ef] flex flex-col lg:flex-row">
       <Sidebar isAdmin={isAdmin ?? false} userEmail={user.email ?? ""} />
       <div className="flex-1 min-w-0 flex flex-col">
         <main className="flex-1 px-4 lg:px-10 py-8 max-w-6xl w-full">

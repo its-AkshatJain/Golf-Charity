@@ -66,7 +66,7 @@ export default async function VerificationPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="brand-table">
+            <table className="brand-table whitespace-nowrap">
               <thead>
                 <tr>
                   {["Winner Email", "Draw Date", "Match Type", "Prize Amount", "Proof", "Status", "Actions"].map((h) => (

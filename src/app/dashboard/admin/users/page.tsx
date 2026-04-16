@@ -56,7 +56,7 @@ export default async function AdminUsersPage() {
 
       <div className="brand-card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm whitespace-nowrap">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
                 {["Email", "Role", "Subscription", "Charity", "Scores", "Contribution %", "Actions"].map(

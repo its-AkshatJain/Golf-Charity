@@ -92,33 +92,35 @@ export default async function AdminDrawsPage() {
           <h2 className="font-black text-[#111] text-base uppercase tracking-tight mb-4">
             Draw History
           </h2>
-          <div className="divide-y divide-gray-50">
-            {displayDraws.map((d: any) => (
-              <div key={d.id} className="py-4 flex items-center justify-between gap-4">
-                <div>
-                  <p className="font-bold text-[#111] text-sm">
-                    {new Date(d.draw_date).toLocaleDateString("en-GB", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-0.5 capitalize">{d.draw_type} draw</p>
+          <div className="overflow-x-auto">
+            <div className="divide-y divide-gray-50 min-w-[600px]">
+              {displayDraws.map((d: any) => (
+                <div key={d.id} className="py-4 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-bold text-[#111] text-sm">
+                      {new Date(d.draw_date).toLocaleDateString("en-GB", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5 capitalize">{d.draw_type} draw</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-black text-[#111]">${d._totalAvailablePool?.toFixed(2)}</p>
+                    <p className="text-xs text-gray-400">{d.winnings?.length ?? 0} winner(s)</p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-md whitespace-nowrap ${
+                      d.status === "published" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-600"
+                    }`}>
+                      {d.status}
+                    </span>
+                    {d.status === "simulated" && <PublishDrawButton drawId={d.id} />}
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-black text-[#111]">${d._totalAvailablePool?.toFixed(2)}</p>
-                  <p className="text-xs text-gray-400">{d.winnings?.length ?? 0} winner(s)</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-md ${
-                    d.status === "published" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-600"
-                  }`}>
-                    {d.status}
-                  </span>
-                  {d.status === "simulated" && <PublishDrawButton drawId={d.id} />}
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       )}
